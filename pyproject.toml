@@ -30,15 +30,12 @@ dependencies = [
     "trimesh>=4.3.2",
 ]
 
-[project.optional-dependencies]
-dev = [
-    "pre-commit",
-]
 
 [tool.hatch.version]
 path = "demos/__init__.py"
 
 [tool.hatch.build.targets.sdist]
-include = [
-    "/demos",
-]
+include = ["/demos"]
+
+[dependency-groups]
+dev = ["ruff>=0.9.10", "pre-commit"]
