@@ -707,13 +707,9 @@ dependencies = [
     { name = "trimesh" },
 ]
 
-[package.optional-dependencies]
-dev = [
-    { name = "pre-commit" },
-]
-
 [package.dev-dependencies]
 dev = [
+    { name = "pre-commit" },
     { name = "ruff" },
 ]
 
@@ -730,7 +726,6 @@ requires-dist = [
     { name = "pillow", specifier = ">=10.3.0" },
     { name = "plotly", specifier = ">=5.22.0" },
     { name = "pot", specifier = ">=0.9.3" },
-    { name = "pre-commit", marker = "extra == 'dev'" },
     { name = "pytest", specifier = ">=8.2.2" },
     { name = "scikit-learn", specifier = ">=1.0" },
     { name = "scipy", specifier = "==1.13.1" },
@@ -740,10 +735,12 @@ requires-dist = [
     { name = "tqdm", specifier = ">=4.66.4" },
     { name = "trimesh", specifier = ">=4.3.2" },
 ]
-provides-extras = ["dev"]
 
 [package.metadata.requires-dev]
-dev = [{ name = "ruff", specifier = ">=0.9.10" }]
+dev = [
+    { name = "pre-commit" },
+    { name = "ruff", specifier = ">=0.9.10" },
+]
 
 [[package]]
 name = "h11"
