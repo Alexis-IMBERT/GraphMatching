@@ -8,9 +8,9 @@ import numpy as np
 
 def fibonacci(nb_point, radius):
     inc = np.pi * (3 - np.sqrt(5))
-    off = 2. / nb_point
+    off = 2.0 / nb_point
     k = np.arange(0, nb_point)
-    y = k * off - 1. + 0.5 * off
+    y = k * off - 1.0 + 0.5 * off
     r = np.sqrt(1 - y * y)
     phi = k * inc
     x = np.cos(phi) * r

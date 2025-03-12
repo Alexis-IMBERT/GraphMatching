@@ -14,50 +14,60 @@ from scipy.sparse.linalg import cg
 
 
 def _sinkhorn_stage(
-        cost: np.ndarray,
-        x: np.ndarray,
-        y: np.ndarray,
-        N1: int,
-        eta: float,
-        mu_s: np.ndarray,
-        mu_t: np.ndarray,
-        tolerance: float
+    cost: np.ndarray,
+    x: np.ndarray,
+    y: np.ndarray,
+    N1: int,
+    eta: float,
+    mu_s: np.ndarray,
+    mu_t: np.ndarray,
+    tolerance: float,
 ):
     """
     Sinkhorn stage part
     :param cost: nost matrix
-    :param x: 
-    :param y: 
-    :param N1: 
-    :param eta: 
-    :param mu_s: 
-    :param mu_t: 
-    :param tolerance: 
-    :return: 
+    :param x:
+    :param y:
+    :param N1:
+    :param eta:
+    :param mu_s:
+    :param mu_t:
+    :param tolerance:
+    :return:
     """
     i = 0
     P = 0
     previous_diff = 0
     previous_z = np.concatenate((x, y))
     while i < N1:
-        P = np.exp(eta * (-cost +
-                          (x @ np.ones((cost.shape[1], 1)).T) +
-                          (np.ones((cost.shape[0], 1)) @ y.T)
-                          ) - 1
-                   )
+        P = np.exp(
+            eta
+            * (
+                -cost
+                + (x @ np.ones((cost.shape[1], 1)).T)
+                + (np.ones((cost.shape[0], 1)) @ y.T)
+            )
+            - 1
+        )
 
         x_next = x + ((np.log(mu_s) - np.log(P @ np.ones((cost.shape[1], 1)))) / eta)
 
-        P = np.exp(eta * (-cost +
-                          (x @ np.ones((cost.shape[1], 1)).T) +
-                          (np.ones((cost.shape[0], 1)) @ y.T)
-                          ) - 1
-                   )
+        P = np.exp(
+            eta
+            * (
+                -cost
+                + (x @ np.ones((cost.shape[1], 1)).T)
+                + (np.ones((cost.shape[0], 1)) @ y.T)
+            )
+            - 1
+        )
 
         y_next = y + ((np.log(mu_t) - np.log(P.T @ np.ones((P.shape[0], 1)))) / eta)
 
         if i == 0:
-            previous_diff = np.linalg.norm(previous_z - np.concatenate((x_next, y_next)))
+            previous_diff = np.linalg.norm(
+                previous_z - np.concatenate((x_next, y_next))
+            )
         else:
             diff = np.linalg.norm(previous_z - np.concatenate((x_next, y_next)))
             if diff - previous_diff < tolerance:
@@ -73,18 +83,18 @@ def _sinkhorn_stage(
 
 
 def _newton_stage(
-        cost: np.ndarray,
-        mu_s: np.ndarray,
-        mu_t: np.ndarray,
-        rho: float,
-        eta: float,
-        iteration: int,
-        x: np.ndarray,
-        y: np.ndarray,
-        P: np.ndarray,
-        N1: int,
-        N2: int,
-        tolerance: float
+    cost: np.ndarray,
+    mu_s: np.ndarray,
+    mu_t: np.ndarray,
+    rho: float,
+    eta: float,
+    iteration: int,
+    x: np.ndarray,
+    y: np.ndarray,
+    P: np.ndarray,
+    N1: int,
+    N2: int,
+    tolerance: float,
 ):
     i_init = iteration
     z = np.concatenate((x, y))
@@ -94,11 +104,13 @@ def _newton_stage(
         M = _sparsify(delta_second, rho)
         if np.all(M == 0):
             return np.exp(
-                eta * (
-                        -cost +
-                        z[:x.shape[0]] @ np.ones((cost.shape[1], 1)).T +
-                        np.ones((cost.shape[0], 1)) @ z[-y.shape[0]:].T
-                ) - 1
+                eta
+                * (
+                    -cost
+                    + z[: x.shape[0]] @ np.ones((cost.shape[1], 1)).T
+                    + np.ones((cost.shape[0], 1)) @ z[-y.shape[0] :].T
+                )
+                - 1
             ), iteration
 
         gradient_z_x = mu_s - (P @ np.ones((P.shape[1], 1)))
@@ -106,8 +118,8 @@ def _newton_stage(
 
         gradient_z = np.zeros((gradient_z_x.shape[0] + gradient_z_y.shape[0], 1))
 
-        gradient_z[:gradient_z_x.shape[0], :1] = gradient_z_x
-        gradient_z[(gradient_z.shape[0] - gradient_z_y.shape[0]):] = gradient_z_y
+        gradient_z[: gradient_z_x.shape[0], :1] = gradient_z_x
+        gradient_z[(gradient_z.shape[0] - gradient_z_y.shape[0]) :] = gradient_z_y
 
         delta_z = _conjugate_gradient(M.T, gradient_z)
         alpha = _line_search(x, y, z, delta_z, eta, mu_s, mu_t)
@@ -123,11 +135,13 @@ def _newton_stage(
         iteration += 1
 
     return np.exp(
-        eta * (
-                -cost +
-                z[:x.shape[0]] @ np.ones((cost.shape[1], 1)).T +
-                np.ones((cost.shape[0], 1)) @ z[-y.shape[0]:].T
-        ) - 1
+        eta
+        * (
+            -cost
+            + z[: x.shape[0]] @ np.ones((cost.shape[1], 1)).T
+            + np.ones((cost.shape[0], 1)) @ z[-y.shape[0] :].T
+        )
+        - 1
     ), iteration
 
 
@@ -138,20 +152,28 @@ def _line_search(x, y, z, delta_z, eta, c, r):  # from eq (2)
     alpha = 0.1
 
     f_alpha_delta_z = z + alpha * delta_z
-    x_alpha_delta_z = f_alpha_delta_z[:x.shape[0]]
-    y_alpha_delta_z = f_alpha_delta_z[-y.shape[0]:]
+    x_alpha_delta_z = f_alpha_delta_z[: x.shape[0]]
+    y_alpha_delta_z = f_alpha_delta_z[-y.shape[0] :]
 
-    f_alpha_delta_z = -1 / eta * (np.sum(np.exp(eta * (-c + x_alpha_delta_z + y_alpha_delta_z.T) - 1)))
+    f_alpha_delta_z = (
+        -1
+        / eta
+        * (np.sum(np.exp(eta * (-c + x_alpha_delta_z + y_alpha_delta_z.T) - 1)))
+    )
 
     f_alpha_delta_z += np.sum(c @ x_alpha_delta_z.T) + np.sum(r @ y_alpha_delta_z.T)
 
     while f_z > f_alpha_delta_z:
         alpha /= 10
         f_alpha_delta_z = z + alpha * delta_z
-        x_alpha_delta_z = f_alpha_delta_z[:x.shape[0]]
-        y_alpha_delta_z = f_alpha_delta_z[-y.shape[0]:]
+        x_alpha_delta_z = f_alpha_delta_z[: x.shape[0]]
+        y_alpha_delta_z = f_alpha_delta_z[-y.shape[0] :]
 
-        f_alpha_delta_z = -1 / eta * (np.sum(np.exp(eta * (-c + x_alpha_delta_z + y_alpha_delta_z.T) - 1)))
+        f_alpha_delta_z = (
+            -1
+            / eta
+            * (np.sum(np.exp(eta * (-c + x_alpha_delta_z + y_alpha_delta_z.T) - 1)))
+        )
         f_alpha_delta_z += np.sum(c @ x_alpha_delta_z.T) + np.sum(r @ y_alpha_delta_z.T)
 
     return alpha
@@ -173,15 +195,15 @@ def _conjugate_gradient(A, b):
 
 
 def sinkhorn_newton_sparse(
-        cost: np.ndarray,
-        mu_s: np.ndarray,
-        mu_t: np.ndarray,
-        rho: float,
-        eta: float,
-        N1: int,
-        N2: int,
+    cost: np.ndarray,
+    mu_s: np.ndarray,
+    mu_t: np.ndarray,
+    rho: float,
+    eta: float,
+    N1: int,
+    N2: int,
 ) -> (np.array, int):
-    """ Sinkhorn Newton Stage algorithms
+    """Sinkhorn Newton Stage algorithms
     :param cost: cost matrix
     :param mu_s:
     :param mu_t:
@@ -196,5 +218,7 @@ def sinkhorn_newton_sparse(
     x = np.zeros((cost.shape[0], 1))
     y = np.zeros((cost.shape[1], 1))
     x, y, P, i = _sinkhorn_stage(cost, x, y, N1, eta, mu_s, mu_t, tolerance=1e-4)
-    result, i = _newton_stage(cost, mu_s, mu_t, rho, eta, i, x, y, P, N1, N2, tolerance=1e-4)
+    result, i = _newton_stage(
+        cost, mu_s, mu_t, rho, eta, i, x, y, P, N1, N2, tolerance=1e-4
+    )
     return result, i

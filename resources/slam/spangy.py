@@ -48,9 +48,10 @@ def eigenpairs(mesh, nb_eig):
     eigVects : Array of float
         eigenvectors computed.
     """
-    lap, lap_b = sdg.compute_mesh_laplacian(mesh, lap_type='fem')
-    eigVal, eigVects = eigsh(lap.tocsr(), nb_eig, M=lap_b.tocsr(),
-                             sigma=1e-6, which='LM')
+    lap, lap_b = sdg.compute_mesh_laplacian(mesh, lap_type="fem")
+    eigVal, eigVects = eigsh(
+        lap.tocsr(), nb_eig, M=lap_b.tocsr(), sigma=1e-6, which="LM"
+    )
     return eigVal, eigVects, lap_b.tocsr()
 
 
@@ -79,30 +80,29 @@ def spectrum(f2analyse, MassMatrix, eigVec, eValues):
     coefficients = f2analyse.dot(MassMatrix.transpose().dot(eigVec))
     nlevels = int(0.5 * np.log(eValues[-1] / eValues[1]) / np.log(2))
     grouped_spectrum = np.zeros((nlevels + 2, 1))
-    grouped_spectrum[0] = coefficients[0]**2
+    grouped_spectrum[0] = coefficients[0] ** 2
     group_indices = np.zeros((nlevels + 2, 2), dtype=int)
     group_indices[0, :] = [0, 0]
 
     for k in range(nlevels):
-        indice = np.where(eValues >= eValues[1] * 2**(2 * (k)))
+        indice = np.where(eValues >= eValues[1] * 2 ** (2 * (k)))
         group_indices[k + 1, 0] = indice[0][0]
-        indice = np.where(eValues <= eValues[1] * 2**(2 * (k + 1)))
+        indice = np.where(eValues <= eValues[1] * 2 ** (2 * (k + 1)))
         group_indices[k + 1, 1] = indice[0][-1]
-        grouped_spectrum[k + 1] = \
-            np.sum(coefficients[
-                   group_indices[k + 1, 0]:group_indices[k + 1, 1] + 1]**2)
+        grouped_spectrum[k + 1] = np.sum(
+            coefficients[group_indices[k + 1, 0] : group_indices[k + 1, 1] + 1] ** 2
+        )
 
     group_indices[-1, 0] = group_indices[-2, 1] + 1
     group_indices[-1, 1] = eValues.size - 1
-    grouped_spectrum[-1] = \
-        np.sum(coefficients[
-               group_indices[-1, 0]:group_indices[-1, 1]]**2)
+    grouped_spectrum[-1] = np.sum(
+        coefficients[group_indices[-1, 0] : group_indices[-1, 1]] ** 2
+    )
 
     return grouped_spectrum, group_indices, coefficients
 
 
-def local_dominance_map(
-        coefficients, f2analyse, nlevels, group_indices, eigVec):
+def local_dominance_map(coefficients, f2analyse, nlevels, group_indices, eigVec):
     """
     Parameters
     ----------
@@ -125,14 +125,13 @@ def local_dominance_map(
     """
     N = np.size(coefficients)
 
-    frecomposed = np.zeros((len(f2analyse), nlevels - 1), dtype='object')
+    frecomposed = np.zeros((len(f2analyse), nlevels - 1), dtype="object")
     eigVec = np.flip(eigVec, 1)
 
     # band by band recomposition
     for i in range(nlevels - 1):
         # levels_ii: number of frequency band wihin the compact Band i
-        levels_i = np.arange(
-            group_indices[i + 1, 0], group_indices[i + 1, 1] + 1)
+        levels_i = np.arange(group_indices[i + 1, 0], group_indices[i + 1, 1] + 1)
         # np.array((number of vertices, number of levels_ii))
         f_ii = np.dot(eigVec[:, N - levels_i - 1], coefficients[levels_i].T)
         frecomposed[:, i] = f_ii
@@ -142,9 +141,8 @@ def local_dominance_map(
 
     diff_recomposed = frecomposed[:, 0]
     diff_recomposed = np.concatenate(
-        (np.expand_dims(
-            diff_recomposed, axis=1), np.diff(
-            frecomposed, axis=1)), axis=1)
+        (np.expand_dims(diff_recomposed, axis=1), np.diff(frecomposed, axis=1)), axis=1
+    )
 
     # sulci
     idx = np.argmin(diff_recomposed, axis=1)

@@ -1,4 +1,4 @@
-""" This module contains a other matching algoritm between a pair of graph
+"""This module contains a other matching algoritm between a pair of graph
 Implementation of Vayer.T, Chapel.L, Flammary.R, Tavenard.R, Courty.N
     Optimal Transport for Structured data with application on graphs
     In International Conference on Machine Learning (pp. 6275-6284). PMLR.
@@ -10,19 +10,22 @@ With correction from Thesis of Cédric Vincent-Cuaz
 
 import numpy as np
 from graph_matching.algorithms.solver import sinkhorn, sns, fx_sns
-from graph_matching.algorithms.pairwise.pairwise_tools import _get_gradient, _get_constant
+from graph_matching.algorithms.pairwise.pairwise_tools import (
+    _get_gradient,
+    _get_constant,
+)
 
 
 def _solve_OT(
-        mu_s,
-        mu_t,
-        gradient,
-        gamma=None,
-        rho=None,
-        eta: float = None,
-        method: str = "sinkhorn",
-        N1=None,
-        N2=None
+    mu_s,
+    mu_t,
+    gradient,
+    gamma=None,
+    rho=None,
+    eta: float = None,
+    method: str = "sinkhorn",
+    N1=None,
+    N2=None,
 ) -> np.ndarray:
     """Solve Optimal Transport using Sinkhorn-Knopp method
     :param np.ndarray mu_s: starting probabilities of the sources nodes
@@ -37,12 +40,12 @@ def _solve_OT(
             mu_s=np.squeeze(mu_s),
             mu_t=np.squeeze(mu_t),
             gamma=gamma,
-            iterations=1000
+            iterations=1000,
         )
         return transport
     elif method == "sns":
         transport, _ = sns.sinkhorn_newton_sparse(
-            cost=gradient/np.max(gradient),
+            cost=gradient / np.max(gradient),
             mu_s=mu_s,
             mu_t=mu_t,
             rho=rho,
@@ -77,14 +80,21 @@ def _line_search(c_C1_C2, C1, C2, distance, transport, new_transport, alpha=0.5)
     :return: parameter tau
     """
 
-    a = -2 * alpha * (
-            (C1 @ (new_transport - transport)) @
-            (C2 @ (new_transport - transport).T)
-    ).sum()
+    a = (
+        -2
+        * alpha
+        * (
+            (C1 @ (new_transport - transport)) @ (C2 @ (new_transport - transport).T)
+        ).sum()
+    )
     b = (((1 - alpha) * distance + alpha * c_C1_C2) * (new_transport - transport)).sum()
-    b -= 2 * alpha * (
-            ((C1 @ new_transport @ C2) * transport).sum() +
-            ((C1 @ transport @ C2) * transport).sum()
+    b -= (
+        2
+        * alpha
+        * (
+            ((C1 @ new_transport @ C2) * transport).sum()
+            + ((C1 @ transport @ C2) * transport).sum()
+        )
     )
 
     tau = 0
@@ -97,19 +107,18 @@ def _line_search(c_C1_C2, C1, C2, distance, transport, new_transport, alpha=0.5)
 
 
 def conditional_gradient(
-        mu_s,
-        mu_t,
-        C1,
-        C2,
-        distance,
-        gamma: float = None,
-        rho: float = None,
-        eta: float = None,
-        N1: int = None,
-        N2: int = None,
-        tolerance: float = 1e-4,
-        ot_method="sinkhorn",
-
+    mu_s,
+    mu_t,
+    C1,
+    C2,
+    distance,
+    gamma: float = None,
+    rho: float = None,
+    eta: float = None,
+    N1: int = None,
+    N2: int = None,
+    tolerance: float = 1e-4,
+    ot_method="sinkhorn",
 ):
     """Compute Condition Gradient for FGW
     :param np.ndarray mu_s: starting probabilities of the sources nodes
@@ -136,12 +145,14 @@ def conditional_gradient(
     for index in range(n):
         # 1 Gradient
         c_C1_C2 = _get_constant(C1=C1, C2=C2, distance=distance, transport=transport)
-        gradient = _get_gradient(c_C1_C2=c_C1_C2, C1=C1, C2=C2, distance=distance, transport=transport)
+        gradient = _get_gradient(
+            c_C1_C2=c_C1_C2, C1=C1, C2=C2, distance=distance, transport=transport
+        )
         # 2 OT
         new_transport = _solve_OT(
             mu_s=mu_s,
             mu_t=mu_t,
-            gradient=gradient/np.max(gradient),
+            gradient=gradient / np.max(gradient),
             gamma=gamma,
             rho=rho,
             eta=eta,

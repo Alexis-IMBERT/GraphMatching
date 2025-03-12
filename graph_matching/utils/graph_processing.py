@@ -27,7 +27,9 @@ def get_distance_between_graphs(first_graph: nx.Graph, graphs: list):
         for graph in graphs:
             for node_graph in range(len(graph.nodes)):
                 if graph.nodes[node_graph]["label"] == node_label:
-                    distance.append(np.linalg.norm(node_coord - graph.nodes[node_graph]["coord"]))
+                    distance.append(
+                        np.linalg.norm(node_coord - graph.nodes[node_graph]["coord"])
+                    )
         node_distances[node_label] = np.mean(distance)
     return node_distances
 
@@ -55,10 +57,7 @@ def save_as_gpickle(path: str, graph: nx.Graph):
         pickle.dump(graph, f, pickle.HIGHEST_PROTOCOL)
 
 
-def get_graph_coord(
-        graph: nx.Graph,
-        nb_dimension: int
-) -> np.ndarray:
+def get_graph_coord(graph: nx.Graph, nb_dimension: int) -> np.ndarray:
     graph_coord = np.zeros(shape=(nx.number_of_nodes(graph), nb_dimension))
     for node in graph.nodes(data=True):
         graph_coord[node[0]] = node[1]["coord"]
@@ -78,7 +77,7 @@ def list_to_dict(list_in):
     return D
 
 
-def sphere_nearest_neighbor_interpolation(graph, sphere_mesh, coord_attribute='coord'):
+def sphere_nearest_neighbor_interpolation(graph, sphere_mesh, coord_attribute="coord"):
     """
     For each node in the graph,
     find the closest vertex in the sphere mesh from the 'coord' attribute of each node
@@ -90,17 +89,21 @@ def sphere_nearest_neighbor_interpolation(graph, sphere_mesh, coord_attribute='c
     nodes_coords = graph_nodes_attribute(graph, coord_attribute)
     vertex_number1 = sphere_mesh.vertices.shape[0]
 
-    #print('vert_template.shape', vert_template.shape[0])
-    #print('vert_pits.shape', vert_pits.shape[0])
+    # print('vert_template.shape', vert_template.shape[0])
+    # print('vert_pits.shape', vert_pits.shape[0])
     nn = np.zeros(nodes_coords.shape[0], dtype=np.int64)
     for ind, v in enumerate(nodes_coords):
-        #print(v)
-        nn_tmp = np.argmin(np.sum(np.square(np.tile(v, (vertex_number1, 1)) - sphere_mesh.vertices), 1))
+        # print(v)
+        nn_tmp = np.argmin(
+            np.sum(np.square(np.tile(v, (vertex_number1, 1)) - sphere_mesh.vertices), 1)
+        )
         nn[ind] = nn_tmp
-    #print(nodes_coords.shape)
-    #print(len(nn))
-    #nx.set_node_attributes(graph, list_to_dict(nn), 'ico100_7_vertex_index_noreg')
-    nx.set_node_attributes(graph, list_to_dict(nn), 'ico100_7_vertex_index')  # Non Registered Vertex
+    # print(nodes_coords.shape)
+    # print(len(nn))
+    # nx.set_node_attributes(graph, list_to_dict(nn), 'ico100_7_vertex_index_noreg')
+    nx.set_node_attributes(
+        graph, list_to_dict(nn), "ico100_7_vertex_index"
+    )  # Non Registered Vertex
 
     return graph
 
@@ -117,19 +120,22 @@ def load_graphs_in_list(path_to_graphs_folder, suffix=".gpickle"):
 
     g_files.sort()  # sort according to filenames
 
-    list_graphs = [get_graph_from_pickle(os.path.join(path_to_graphs_folder, graph)) for graph in g_files]
+    list_graphs = [
+        get_graph_from_pickle(os.path.join(path_to_graphs_folder, graph))
+        for graph in g_files
+    ]
 
     return list_graphs
 
 
-def load_labelled_graphs_in_list(path_to_graphs_folder, hemi='lh'):
+def load_labelled_graphs_in_list(path_to_graphs_folder, hemi="lh"):
     """
     Return a list of graph loaded from the path
     """
     files = os.listdir(path_to_graphs_folder)
     files_to_load = list()
     for f in files:
-        if '.gpickle' in f:
+        if ".gpickle" in f:
             if hemi in f:
                 files_to_load.append(f)
     list_graphs = []
@@ -183,20 +189,20 @@ def graph_edges_attribute(graph, attribute):
 
 
 def remove_dummy_nodes(graph):
-    is_dummy = graph_nodes_attribute(graph, 'is_dummy')
+    is_dummy = graph_nodes_attribute(graph, "is_dummy")
     data_mask = np.ones_like(is_dummy)
     if True in is_dummy:
-        graph.remove_nodes_from(np.where(np.array(is_dummy) == True)[0])
-        inds_dummy = np.where(np.array(is_dummy) == True)[0]
-        data_mask[inds_dummy] = 0
+        graph.remove_nodes_from(np.where(np.array(is_dummy))[0])
     return data_mask
 
 
 def get_geodesic_distance_sphere(coord_a, coord_b, radius):
-    '''
+    """
     Return the geodesic distance of two 3D vectors on a sphere
-    '''
-    return radius * np.arccos(np.clip(np.dot(coord_a, coord_b) / np.power(radius, 2), -1, 1))
+    """
+    return radius * np.arccos(
+        np.clip(np.dot(coord_a, coord_b) / np.power(radius, 2), -1, 1)
+    )
 
 
 def add_geodesic_distance_on_edges(graph):
@@ -210,9 +216,11 @@ def add_geodesic_distance_on_edges(graph):
 
     # Fill the dictionnary with the geodesic_distance
     for edge in graph.edges:
-        geodesic_distance = get_geodesic_distance_sphere(graph.nodes[edge[0]]["sphere_3dcoords"],
-                                                         graph.nodes[edge[1]]["sphere_3dcoords"],
-                                                         radius=100)
+        geodesic_distance = get_geodesic_distance_sphere(
+            graph.nodes[edge[0]]["sphere_3dcoords"],
+            graph.nodes[edge[1]]["sphere_3dcoords"],
+            radius=100,
+        )
 
         edges_attributes[edge] = {"geodesic_distance": geodesic_distance}
 
@@ -251,7 +259,9 @@ def transform_3dcoords_attribute_into_ndarray(graph):
 
     # Fill the dictionnary with the nd_array attribute
     for node in graph.nodes:
-        nodes_attributes[node] = {"sphere_3dcoords": np.array(graph.nodes[node]["sphere_3dcoords"])}
+        nodes_attributes[node] = {
+            "sphere_3dcoords": np.array(graph.nodes[node]["sphere_3dcoords"])
+        }
 
     nx.set_node_attributes(graph, nodes_attributes)
 
@@ -274,6 +284,3 @@ def preprocess_graph(graph):
 
     # add the 'is_dummy' attribute to nodes, that will be used when manipulating dummy nodes later
     nx.set_node_attributes(graph, values=False, name="is_dummy")
-
-
-

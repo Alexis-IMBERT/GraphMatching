@@ -3,6 +3,7 @@
 """
 
 import sys
+
 sys.path.append("/graph_matching/utils")
 import numpy as np
 from matplotlib import pyplot as plt
@@ -17,7 +18,7 @@ class Sphere:
         self.x = None
         self.y = None
         self.z = None
-        self.distribution = ['uniform', 'vMF']
+        self.distribution = ["uniform", "vMF"]
 
     def make_sphere(self, radius: float) -> tuple:
         """
@@ -30,7 +31,7 @@ class Sphere:
         pi = np.pi
         cos = np.cos
         sin = np.sin
-        phi, theta = np.mgrid[0.0:pi:100j, 0.0:2.0 * pi:100j]
+        phi, theta = np.mgrid[0.0:pi:100j, 0.0 : 2.0 * pi : 100j]
         self.x = radius * sin(phi) * cos(theta)
         self.y = radius * sin(phi) * sin(theta)
         self.z = radius * cos(phi)
@@ -44,15 +45,18 @@ class Sphere:
         :param ax: axis where to plot sphere
         :param radius: value of sphere radius
         """
-        x, y, z = self.make_sphere(radius - 0.01)  # subtract a little so points show on sphere
+        x, y, z = self.make_sphere(
+            radius - 0.01
+        )  # subtract a little so points show on sphere
         ax.plot_surface(
             x,
             y,
             z,
-            rstride=1, cstride=1,
+            rstride=1,
+            cstride=1,
             color=sns.xkcd_rgb["light grey"],
             alpha=0.5,
-            linewidth=0
+            linewidth=0,
         )
 
     def plot(self, radius: float = 1.0, data: tuple = None):
@@ -63,12 +67,12 @@ class Sphere:
         :param data: list of sample objects
         """
 
-        sns.set_style('dark')
-        ax = plt.figure().add_subplot(projection='3d')
+        sns.set_style("dark")
+        ax = plt.figure().add_subplot(projection="3d")
 
         self.draw_sphere(ax=ax, radius=radius)
 
-        if data == None:
+        if data is None:
             is_list = True
             data = self.samples
             N = len(data)
@@ -78,34 +82,60 @@ class Sphere:
 
         colors = [sns.color_palette("GnBu_d", N)[i] for i in reversed(range(N))]
 
-        data_check = data[0] if is_list else  data
+        data_check = data[0] if is_list else data
 
         if type(data_check) is vMFSample:
             i = 0
             if is_list:
                 for d in data:
-                    ax.scatter(d.x, d.y, d.z, s=50, alpha=0.7,
-                               label='$\kappa = $' + str(d.kappa), color=colors[i])
+                    ax.scatter(
+                        d.x,
+                        d.y,
+                        d.z,
+                        s=50,
+                        alpha=0.7,
+                        label="$\kappa = $" + str(d.kappa),
+                        color=colors[i],
+                    )
                     i += 1
             else:
-                ax.scatter(data.x, data.y, data.z, s=50, alpha=0.7,
-                           label='$\kappa = $' + str(data.kappa), color=colors[i])
-
+                ax.scatter(
+                    data.x,
+                    data.y,
+                    data.z,
+                    s=50,
+                    alpha=0.7,
+                    label="$\kappa = $" + str(data.kappa),
+                    color=colors[i],
+                )
 
         elif type(data_check) is Coord3D:
             i = 0
             if is_list:
                 for d in data:
-                    ax.scatter(d.x, d.y, d.z, s=50, alpha=0.7,
-                               label='uniform samples', color=sns.color_palette("GnBu_d", N))
+                    ax.scatter(
+                        d.x,
+                        d.y,
+                        d.z,
+                        s=50,
+                        alpha=0.7,
+                        label="uniform samples",
+                        color=sns.color_palette("GnBu_d", N),
+                    )
                     i += 1
             else:
-                ax.scatter(data.x, data.y, data.z, s=50, alpha=0.7,
-                           label='uniform samples', color=sns.color_palette("GnBu_d", N))
-
+                ax.scatter(
+                    data.x,
+                    data.y,
+                    data.z,
+                    s=50,
+                    alpha=0.7,
+                    label="uniform samples",
+                    color=sns.color_palette("GnBu_d", N),
+                )
 
         else:
-            print('Error: data type not recognised')
+            print("Error: data type not recognised")
 
         ax.set_axis_off()
         ax.legend(bbox_to_anchor=[0.65, 0.75])
@@ -115,8 +145,8 @@ class Sphere:
         nb_sample: int,
         radius: float = 1.0,
         distribution="uniform",
-        mu = None,
-        kappa = None
+        mu=None,
+        kappa=None,
     ):
         """Sample points on a spherical surface.
         :param nb_sample: number of sample
@@ -126,7 +156,7 @@ class Sphere:
         :param kappa: parametter of vMF distrbution
         """
 
-        if distribution == 'uniform':
+        if distribution == "uniform":
             u = np.random.uniform(0, 1, nb_sample)
             v = np.random.uniform(0, 1, nb_sample)
 
@@ -139,16 +169,18 @@ class Sphere:
             z = radius * np.cos(phi)
             self.samples = (x, y, z)
 
-        elif distribution == 'vMF':
+        elif distribution == "vMF":
             try:
                 s = sample_vMF(mu, kappa, nb_sample)
-            except:
-                print('Error: mu and kappa must be defined when sampling from vMF')
+            except Exception:
+                print("Error: mu and kappa must be defined when sampling from vMF")
                 return
             self.samples = vMFSample(s, kappa)
 
         else:
-            print('Error: sampling distribution not recognised (try \'uniform\' or \'vMF\')')
+            print(
+                "Error: sampling distribution not recognised (try 'uniform' or 'vMF')"
+            )
 
         return self.samples
 
@@ -180,5 +212,3 @@ class Coord3D:
         self.x = x
         self.y = y
         self.z = z
-
-

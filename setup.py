@@ -23,7 +23,7 @@ setup(
         "nibabel>=3.2.2",
         "pytest>=8.2.2",
         "plotly>=5.22.0",
-        "POT>=0.9.3"
+        "POT>=0.9.3",
     ],
     python_requires=">=3.10.0",
 )

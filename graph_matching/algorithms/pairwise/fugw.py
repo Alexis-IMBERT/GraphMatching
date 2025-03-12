@@ -17,8 +17,8 @@ def _geometry_cost(D_s: np.ndarray, D_t: np.ndarray) -> np.ndarray:
     for i in range(n):
         for j in range(p):
             for k in range(n):
-                for l in range(p):
-                    result.append(np.abs(D_s[i, k] - D_t[j, l]))
+                for l_ in range(p):
+                    result.append(np.abs(D_s[i, k] - D_t[j, l_]))
 
     return np.array(result).reshape(n, p, n, p)
 
@@ -29,20 +29,20 @@ def _kron_tensor(G: np.ndarray, P: np.ndarray) -> np.ndarray:
 
     result = []
     for k in range(K):
-        for l in range(L):
-            result.append(np.sum(G[:, :, k, l] * P[:, :]))
+        for l_ in range(L):
+            result.append(np.sum(G[:, :, k, l_] * P[:, :]))
     return np.array(result).reshape(K, L)
 
 
 def _cost(
-        P: np.ndarray,
-        G: np.ndarray,
-        C: np.ndarray,
-        w_s: np.ndarray,
-        w_t: np.ndarray,
-        rho: float,
-        alpha: float,
-        epsilon: float
+    P: np.ndarray,
+    G: np.ndarray,
+    C: np.ndarray,
+    w_s: np.ndarray,
+    w_t: np.ndarray,
+    rho: float,
+    alpha: float,
+    epsilon: float,
 ) -> np.ndarray:
     """
     Compute cost matrix
@@ -65,13 +65,13 @@ def _cost(
 
 
 def _scaling(
-        C: np.ndarray,
-        w_s: np.ndarray,
-        w_t: np.ndarray,
-        rho: float,
-        epsilon: float,
-        tolerance: float = 1e-1,
-        max_iteration: int = 10
+    C: np.ndarray,
+    w_s: np.ndarray,
+    w_t: np.ndarray,
+    rho: float,
+    epsilon: float,
+    tolerance: float = 1e-1,
+    max_iteration: int = 10,
 ) -> np.ndarray:
     """
     Algorithm 2 in paper
@@ -97,42 +97,43 @@ def _scaling(
     while index < max_iteration:
         tmp_f = 0
         for j in range(p):
-            tmp_f += np.exp(
-                g[j] + np.log(w_t.reshape(-1, 1)[j]) - (C[:, j] / epsilon)
-            )
+            tmp_f += np.exp(g[j] + np.log(w_t.reshape(-1, 1)[j]) - (C[:, j] / epsilon))
 
-        f = -(rho/(rho+epsilon)) * np.log(tmp_f)
+        f = -(rho / (rho + epsilon)) * np.log(tmp_f)
         tmp_g = 0
 
         for i in range(n):
-            tmp_g += np.exp(
-                f[i] + np.log(w_s[i]) - (C[i, :] / epsilon)
-            )
-        g = -(rho/(rho+epsilon)) * np.log(tmp_g)
+            tmp_g += np.exp(f[i] + np.log(w_s[i]) - (C[i, :] / epsilon))
+        g = -(rho / (rho + epsilon)) * np.log(tmp_g)
         if index != 0:
-            if np.linalg.norm(last_f - f) < tolerance and np.linalg.norm(last_g - g) < tolerance:
-                P = (np.kron(w_s, w_t.reshape(1, -1)) * np.exp((np.add.outer(f, g) - C / epsilon)))
+            if (
+                np.linalg.norm(last_f - f) < tolerance
+                and np.linalg.norm(last_g - g) < tolerance
+            ):
+                P = np.kron(w_s, w_t.reshape(1, -1)) * np.exp(
+                    (np.add.outer(f, g) - C / epsilon)
+                )
                 return P
         index += 1
 
         last_f = f
         last_g = g
 
-    P = (np.kron(w_s, w_t.reshape(1, -1)) * np.exp((np.add.outer(f, g) - C / epsilon)))
+    P = np.kron(w_s, w_t.reshape(1, -1)) * np.exp((np.add.outer(f, g) - C / epsilon))
     return P
 
 
 def LB_FUGW(
-        cost: np.ndarray,
-        distance: np.ndarray,
-        w_s: np.ndarray,
-        w_t: np.ndarray,
-        rho: float,
-        alpha: float,
-        epsilon: float,
-        max_iteration: int = 50,
-        tolerance: float = 1e-1,
-        return_i: bool = False
+    cost: np.ndarray,
+    distance: np.ndarray,
+    w_s: np.ndarray,
+    w_t: np.ndarray,
+    rho: float,
+    alpha: float,
+    epsilon: float,
+    max_iteration: int = 50,
+    tolerance: float = 1e-1,
+    return_i: bool = False,
 ) -> tuple:
     """
     LB Fused-Unbalance-Gromov-Wasserstein algorithm
@@ -163,15 +164,11 @@ def LB_FUGW(
             w_t=w_t,
             rho=rho,
             alpha=alpha,
-            epsilon=epsilon
+            epsilon=epsilon,
         )
 
         Q = _scaling(
-            C=c_p,
-            w_s=w_s,
-            w_t=w_t,
-            rho=rho * np.sum(P),
-            epsilon=epsilon * np.sum(P)
+            C=c_p, w_s=w_s, w_t=w_t, rho=rho * np.sum(P), epsilon=epsilon * np.sum(P)
         )
 
         Q = np.sqrt(np.sum(P) / np.sum(Q)) * Q
@@ -184,21 +181,20 @@ def LB_FUGW(
             w_t=w_t,
             rho=rho,
             alpha=alpha,
-            epsilon=epsilon
+            epsilon=epsilon,
         )
 
         P = _scaling(
-            C=c_q,
-            w_s=w_s,
-            w_t=w_t,
-            rho=rho * np.sum(Q),
-            epsilon=epsilon * np.sum(Q)
+            C=c_q, w_s=w_s, w_t=w_t, rho=rho * np.sum(Q), epsilon=epsilon * np.sum(Q)
         )
 
         P = np.sqrt(np.sum(Q) / np.sum(P)) * P
 
         if i != 0:
-            if np.linalg.norm(P - last_P) < tolerance and np.linalg.norm(Q - last_Q) < tolerance:
+            if (
+                np.linalg.norm(P - last_P) < tolerance
+                and np.linalg.norm(Q - last_Q) < tolerance
+            ):
                 return (P, Q, i) if return_i else (P, Q)
 
         last_P = P

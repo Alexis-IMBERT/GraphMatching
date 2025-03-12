@@ -12,15 +12,19 @@ def _get_gradient(c_C1_C2, C1, C2, distance, transport, alpha=0.5, q=2.0):
     :param float q: fixed to 2.0, it's L2 Loss parametter
     :return: gradient
     """
-    return (1 - alpha) * (distance ** q) + 2.0 * alpha * c_C1_C2 - C1 @ transport @ (2.0 * C2).T
+    return (
+        (1 - alpha) * (distance**q)
+        + 2.0 * alpha * c_C1_C2
+        - C1 @ transport @ (2.0 * C2).T
+    )
 
 
 def _get_constant(
-        C1: np.ndarray,
-        C2: np.ndarray,
-        distance: np.ndarray,
-        transport: np.ndarray,
-        alpha: float = 0.5
+    C1: np.ndarray,
+    C2: np.ndarray,
+    distance: np.ndarray,
+    transport: np.ndarray,
+    alpha: float = 0.5,
 ) -> np.ndarray:
     """Compute constant from eq (6) in Gromov-Wasserstein Averaging of Kernel and Distance Matrices
     by Peyré.G, Cuturi.M, Solomon.J
@@ -32,6 +36,8 @@ def _get_constant(
     :return: float
     """
     transport = transport.reshape((-1, 1))
-    result = transport.flatten().T @ (-2 * alpha * np.kron(C2, C1)) @ transport.flatten()
+    result = (
+        transport.flatten().T @ (-2 * alpha * np.kron(C2, C1)) @ transport.flatten()
+    )
     result += (1 - alpha * distance).T.flatten() @ transport.flatten()
     return np.argmin(result)

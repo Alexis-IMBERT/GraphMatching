@@ -5,17 +5,21 @@
 import os
 import sys
 
-sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
-from graph_matching.algorithms.graph_generation.generation_graph_edge_permutation import Graph_generation
+sys.path.append(
+    os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+)
+from graph_matching.algorithms.graph_generation.generation_graph_edge_permutation import (
+    Graph_generation,
+)
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
-project_path = os.path.abspath(os.path.join(current_dir, '../..'))
+project_path = os.path.abspath(os.path.join(current_dir, "../.."))
 if project_path not in sys.path:
     sys.path.append(project_path)
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     generation_folder_path = os.path.join(current_dir, "graph_generated")
-    nb_sample_graphs = 20 # nb graph per noise families
+    nb_sample_graphs = 20  # nb graph per noise families
     nb_vertices = 30  # nb nodes that we want to have in graphs
     noise = [1, 1, 61]  # Min noise, Step noise, Max noise
     max_outliers = 10
@@ -38,7 +42,7 @@ if __name__ == '__main__':
         nb_ref_graph=nb_ref_graph,
         radius=radius,
         nb_neighbors_to_consider_outliers=nb_neighbors_to_consider_outliers,
-        generation_folder_path=generation_folder_path
+        generation_folder_path=generation_folder_path,
     )
 
     print(f"Graphs save in {generation_folder_path}")

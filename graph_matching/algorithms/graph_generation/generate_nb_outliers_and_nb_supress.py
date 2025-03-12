@@ -1,10 +1,9 @@
-from graph_matching.utils.graph_tools import *
+from graph_matching.utils.graph_tools import compute_alpha, compute_beta
 from scipy.stats import betabinom
 
-def run(
-        nb_vertices: int
-) -> tuple:
-    """ Sample nb_outliers and nb_supress from a Normal distance following the std of real data
+
+def run(nb_vertices: int) -> tuple:
+    """Sample nb_outliers and nb_supress from a Normal distance following the std of real data
     :param nb_vertices:
     :return: Tuple which contains nb outliers and nb supress
     :rtype: (int, int)
@@ -16,7 +15,9 @@ def run(
     sigma = std_real_data
     n = 25
 
-    alpha = compute_alpha(n, mu, sigma ** 2)  # corresponding alpha with respect to given mu and sigma
+    alpha = compute_alpha(
+        n, mu, sigma**2
+    )  # corresponding alpha with respect to given mu and sigma
     beta = compute_beta(alpha, n, mu)  # corresponding beta
 
     nb_supress = betabinom.rvs(n, alpha, beta, size=1)[0]

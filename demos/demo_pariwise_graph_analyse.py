@@ -4,21 +4,27 @@
 
 import os
 import sys
-
-script_dir = os.path.dirname(os.path.abspath(__file__))
-project_root = os.path.abspath(os.path.join(script_dir, '../graph_matching', '..'))
-if project_root not in sys.path:
-    sys.path.append(project_root)
-
 import numpy as np
 import networkx as nx
 import time
 import graph_matching.algorithms.pairwise.fgw as fgw
 import graph_matching.algorithms.pairwise.fugw as fugw
-from graph_matching.utils.graph_processing import get_graph_coord, get_graph_from_pickle, _compute_distance
-from graph_matching.algorithms.pairwise.pairwise_tools import _get_gradient, _get_constant
+from graph_matching.utils.graph_processing import (
+    get_graph_coord,
+    get_graph_from_pickle,
+    _compute_distance,
+)
+from graph_matching.algorithms.pairwise.pairwise_tools import (
+    _get_gradient,
+    _get_constant,
+)
 
-if __name__ == '__main__':
+script_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.abspath(os.path.join(script_dir, "../graph_matching", ".."))
+if project_root not in sys.path:
+    sys.path.append(project_root)
+
+if __name__ == "__main__":
     start = time.time()
     G_source = get_graph_from_pickle(
         os.path.join(
@@ -28,7 +34,7 @@ if __name__ == '__main__':
             "generation",
             "without_outliers",
             "noise_60",
-            "graph_00000.gpickle"
+            "graph_00000.gpickle",
         )
     )
 
@@ -40,7 +46,7 @@ if __name__ == '__main__':
             "generation",
             "without_outliers",
             "noise_60",
-            "graph_00010.gpickle"
+            "graph_00010.gpickle",
         )
     )
     mu_s = np.ones(nx.number_of_nodes(G_source)) / nx.number_of_nodes(G_source)
@@ -71,17 +77,14 @@ if __name__ == '__main__':
 
     # use same cost computation than fgw
     c_C1_C2 = _get_constant(
-        C1=adj_matrix_s,
-        C2=adj_matrix_t,
-        distance=distance,
-        transport=mu_s @ mu_t.T
+        C1=adj_matrix_s, C2=adj_matrix_t, distance=distance, transport=mu_s @ mu_t.T
     )
     cost = _get_gradient(
         c_C1_C2=c_C1_C2,
         C1=adj_matrix_s,
         C2=adj_matrix_t,
         distance=distance,
-        transport=mu_s @ mu_t.T
+        transport=mu_s @ mu_t.T,
     )
     mu_t = mu_t.reshape((1, -1))
     # compute transport pairwise matrix using Fused Unbalanced Gromov Wasserstein algorithm
@@ -92,7 +95,7 @@ if __name__ == '__main__':
         w_t=mu_t,
         rho=rho,
         alpha=alpha,
-        epsilon=epsilon
+        epsilon=epsilon,
     )
     # Compute euclidian distance between both matrices
     end = time.time()

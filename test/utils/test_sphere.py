@@ -2,10 +2,7 @@
 
 ..moduleauthor:: Marius Thorre
 """
-import sys, os
-project_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
-if project_path not in sys.path:
-    sys.path.append(project_path)
+
 from unittest import TestCase
 import numpy as np
 import matplotlib.pyplot as plt
@@ -29,7 +26,7 @@ class SphereTest(TestCase):
         self.assertTrue(np.linalg.norm(-1 - np.min(z)) < tau)
 
     def test_draw_sphere(self):
-        ax = plt.figure().add_subplot(projection='3d')
+        ax = plt.figure().add_subplot(projection="3d")
         sphere_test.draw_sphere(ax=ax, radius=1.0)
         # plt.show()
 
