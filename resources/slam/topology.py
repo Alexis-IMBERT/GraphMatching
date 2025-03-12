@@ -1,4 +1,3 @@
-
 import numpy as np
 from scipy import sparse
 import networkx as nx
@@ -453,7 +452,7 @@ def remove_mesh_boundary_faces(mesh, face_vertex_number=1):
     """
     if face_vertex_number == 0 or face_vertex_number > 3:
         raise NameError(
-            "Invalid parameter value: face_vertex_number value " "should be 1, 2, or 3"
+            "Invalid parameter value: face_vertex_number value should be 1, 2, or 3"
         )
 
     open_mesh_boundary = mesh_boundary(mesh)
@@ -498,7 +497,6 @@ def texture_boundary(mesh, atex, val):
         print("no value " + str(val) + " in the input texture!!")
         return list()
     else:
-
         bound_verts = texture_boundary_vertices(atex, val, mesh.vertex_neighbors)
         # select the edges that are on the boundary in the polygons
         u_edges = mesh.edges_unique

@@ -10,16 +10,17 @@ import random
 import numpy as np
 import networkx as nx
 import concurrent.futures
-from sklearn.cluster import KMeans
 import graph_matching.algorithms.pairwise.fugw as fugw
 import graph_matching.algorithms.pairwise.fgw as fgw
-from graph_matching.utils.graph_processing import _compute_distance
+
 
 def compute(
-        graphs: list,
-        alpha: float, epsilon: float, rho: float,
-        max_iteration: int = 50,
-        convergence: float = 1e-1,
+    graphs: list,
+    alpha: float,
+    epsilon: float,
+    rho: float,
+    max_iteration: int = 50,
+    convergence: float = 1e-1,
 ) -> tuple:
     """
     Compute FUGW Barycenter
@@ -42,8 +43,13 @@ def compute(
 
     while i < max_iteration:
         with concurrent.futures.ThreadPoolExecutor() as executor:
-            futures = [executor.submit(_fugw_pairwise, g, F_b, D_b, alpha, epsilon, rho) for g in sample_graphe]
-            p_list = [future.result() for future in concurrent.futures.as_completed(futures)]
+            futures = [
+                executor.submit(_fugw_pairwise, g, F_b, D_b, alpha, epsilon, rho)
+                for g in sample_graphe
+            ]
+            p_list = [
+                future.result() for future in concurrent.futures.as_completed(futures)
+            ]
 
         tmp_F_b = np.zeros((30, 3))
         tmp_d_b = np.zeros((30, 30))
@@ -52,10 +58,13 @@ def compute(
             tmp_d_b += (p.T @ D_b @ p) / (np.sum(p, axis=0) @ np.sum(p, axis=0).T)
 
         F_b = (1 / len(sample_graphe)) * tmp_F_b
-        D_b = (tmp_d_b / len(graphs))
+        D_b = tmp_d_b / len(graphs)
 
         if i != 0:
-            if np.linalg.norm(last_F_b - F_b) < convergence and np.linalg.norm(last_D_b - D_b) < convergence:
+            if (
+                np.linalg.norm(last_F_b - F_b) < convergence
+                and np.linalg.norm(last_D_b - D_b) < convergence
+            ):
                 return F_b, D_b
 
         last_F_b = F_b
@@ -65,10 +74,12 @@ def compute(
 
 
 def _fugw_pairwise(
-        g: nx.Graph,
-        F_b: np.ndarray,
-        D_b: np.ndarray,
-        alpha: float, epsilon: float, rho: float,
+    g: nx.Graph,
+    F_b: np.ndarray,
+    D_b: np.ndarray,
+    alpha: float,
+    epsilon: float,
+    rho: float,
 ) -> np.ndarray:
     g_nodes = []
     g_adj = nx.adjacency_matrix(g).todense()
@@ -92,17 +103,10 @@ def _fugw_pairwise(
     w_t = np.ones(shape=(1, 30)) / 30
 
     c_src_dest = fgw._get_constant(
-        C1=g_adj,
-        C2=D_b,
-        distance=distance,
-        transport=w_s @ w_t
+        C1=g_adj, C2=D_b, distance=distance, transport=w_s @ w_t
     )
     cost = fgw._get_gradient(
-        c_C1_C2=c_src_dest,
-        C1=g_adj,
-        C2=D_b,
-        distance=distance,
-        transport=w_s @ w_t
+        c_C1_C2=c_src_dest, C1=g_adj, C2=D_b, distance=distance, transport=w_s @ w_t
     )
 
     P, _ = fugw.LB_FUGW(
@@ -112,14 +116,14 @@ def _fugw_pairwise(
         w_t=w_t,
         rho=rho,
         alpha=alpha,
-        epsilon=epsilon
+        epsilon=epsilon,
     )
 
     return P
 
 
 def _get_init_graph(
-        graphs: list,
+    graphs: list,
 ):
     index = random.randint(0, len(graphs) - 1)
     coord = [graphs[index].nodes[i]["coord"] for i in range(len(graphs[index].nodes))]
@@ -127,10 +131,7 @@ def _get_init_graph(
     return np.array(coord), sample_graph
 
 
-def _add_neighbors_edge(
-        coords: np.ndarray,
-        nb_neighbors: int = 4
-):
+def _add_neighbors_edge(coords: np.ndarray, nb_neighbors: int = 4):
     all_nodes = dict(enumerate(coords, 0))
     edges = np.zeros((coords.shape[0], coords.shape[0]))
     for node in all_nodes.keys():
@@ -147,11 +148,6 @@ def _add_neighbors_edge(
 
 
 def get_graph(graphs: list, rho: float, epsilon: float, alpha: float):
-    F_b, _ = compute(
-        graphs=graphs,
-        rho=rho,
-        epsilon=epsilon,
-        alpha=alpha
-    )
+    F_b, _ = compute(graphs=graphs, rho=rho, epsilon=epsilon, alpha=alpha)
     F_b *= 100
     return F_b

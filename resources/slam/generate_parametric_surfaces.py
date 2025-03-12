@@ -7,8 +7,8 @@ import resources.slam.topology as stop
 
 
 def generate_hinge(
-    n_hinge=3, n_step=50,
-        min_coord=-1 / 5, max_coord=1 / 5, regularity="regular"):
+    n_hinge=3, n_step=50, min_coord=-1 / 5, max_coord=1 / 5, regularity="regular"
+):
     """
     Generate a hinge shaped surface
     :param n_hinge:
@@ -101,9 +101,7 @@ def quadric_curv_mean(K):
     K2 = K[1]
 
     def curv_mean(x, y):
-        num = -(
-            2 * K2 * (1 + 4 * K1**2 * x**2) + 2 * K1 * (1 + 4 * K2**2 * y**2)
-        )
+        num = -(2 * K2 * (1 + 4 * K1**2 * x**2) + 2 * K1 * (1 + 4 * K2**2 * y**2))
         denom = 2 * (1 + 4 * K1**2 * x**2 + 4 * K2**2 * y**2) ** (3 / 2)
 
         return num / denom
@@ -129,10 +127,12 @@ def adaptive_sampling(ymax, K, step):
     :param step: desired sampling step if K =0
     :return:
     """
+
     # Curvilinear abscisse
     def f(x):
-        return (2 * K * x * np.sqrt((2 * K * x) ** 2 + 1) +
-                np.arcsinh(2 * K * x)) / (4 * K)
+        return (2 * K * x * np.sqrt((2 * K * x) ** 2 + 1) + np.arcsinh(2 * K * x)) / (
+            4 * K
+        )
 
     # Step 1
     curve_length = f(ymax)

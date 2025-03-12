@@ -10,106 +10,131 @@ import pickle as p
 import copy
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
-project_path = os.path.abspath(os.path.join(current_dir, '../../..'))
+project_path = os.path.abspath(os.path.join(current_dir, "../../.."))
 if project_path not in sys.path:
     sys.path.append(project_path)
 
 if __name__ == "__main__":
-    template_mesh = os.path.join(project_path, 'data/template_mesh/lh.OASIS_testGrp_average_inflated.gii')
-    path_to_graphs = os.path.join(project_path, 'data/_obsolete_OASIS_full_batch/modified_graphs')
-    path_to_silhouette = os.path.join(project_path, 'data/_obsolete_OASIS_full_batch')
-    path_to_mALS = os.path.join(project_path, 'data/_obsolete_OASIS_full_batch/X_mALS.mat')
-    path_to_mSync = os.path.join(project_path, 'data/_obsolete_OASIS_full_batch/X_mSync.mat')
-    path_to_CAO = os.path.join(project_path, 'data/_obsolete_OASIS_full_batch/X_cao_cst_o.mat')
-    path_to_kerGM = os.path.join(project_path, 'data/_obsolete_OASIS_full_batch/X_pairwise_kergm.mat')
-    path_to_r_perm = os.path.join(project_path, 'data/r_perm.gpickle')
+    template_mesh = os.path.join(
+        project_path, "data/template_mesh/lh.OASIS_testGrp_average_inflated.gii"
+    )
+    path_to_graphs = os.path.join(
+        project_path, "data/_obsolete_OASIS_full_batch/modified_graphs"
+    )
+    path_to_silhouette = os.path.join(project_path, "data/_obsolete_OASIS_full_batch")
+    path_to_mALS = os.path.join(
+        project_path, "data/_obsolete_OASIS_full_batch/X_mALS.mat"
+    )
+    path_to_mSync = os.path.join(
+        project_path, "data/_obsolete_OASIS_full_batch/X_mSync.mat"
+    )
+    path_to_CAO = os.path.join(
+        project_path, "data/_obsolete_OASIS_full_batch/X_cao_cst_o.mat"
+    )
+    path_to_kerGM = os.path.join(
+        project_path, "data/_obsolete_OASIS_full_batch/X_pairwise_kergm.mat"
+    )
+    path_to_r_perm = os.path.join(project_path, "data/r_perm.gpickle")
 
     list_graphs_cp = gp.load_graphs_in_list(path_to_graphs)
     list_graphs = gp.load_graphs_in_list(path_to_graphs)
     algorithms = []
 
-    X_mALS = sco.loadmat(path_to_mALS)['X']
-    X_mSync = sco.loadmat(path_to_mSync)['X']
-    X_CAO = sco.loadmat(path_to_CAO)['X']
+    X_mALS = sco.loadmat(path_to_mALS)["X"]
+    X_mSync = sco.loadmat(path_to_mSync)["X"]
+    X_CAO = sco.loadmat(path_to_CAO)["X"]
     x_kerGM = sco.loadmat(path_to_kerGM)["full_assignment_mat"]
 
-    matching_matrix = X_mALS#x_kerGM#,X_mSync]#,X_CAO]
-    label_attribute = 'labelling_mALS'
-    #X = np.load(path_to_match_mat)
+    matching_matrix = X_mALS  # x_kerGM#,X_mSync]#,X_CAO]
+    label_attribute = "labelling_mALS"
+    # X = np.load(path_to_match_mat)
 
     nb_graphs = 134
 
     mesh = sio.load_mesh(template_mesh)
 
-    largest_ind=24
-    g_l=list_graphs[largest_ind]#p.load(open("../data/OASIS_full_batch/modified_graphs/graph_"+str(largest_ind)+".gpickle","rb"))
+    largest_ind = 24
+    g_l = list_graphs[
+        largest_ind
+    ]  # p.load(open("../data/OASIS_full_batch/modified_graphs/graph_"+str(largest_ind)+".gpickle","rb"))
     color_label_ordered = gca.label_nodes_according_to_coord(g_l, mesh, coord_dim=1)
-    r_perm = p.load(open(path_to_r_perm,"rb"))
+    r_perm = p.load(open(path_to_r_perm, "rb"))
     color_label = color_label_ordered[r_perm]
     reg_mesh = gv.reg_mesh(mesh)
     vb_sc = gv.visbrain_plot(reg_mesh)
 
-    default_value = -0.1#0.05
+    default_value = -0.1  # 0.05
     nb_nodes = len(g_l.nodes)
     row_scope = range(largest_ind * nb_nodes, (largest_ind + 1) * nb_nodes)
 
-
     nb_unmatched = 0
     for i in range(nb_graphs):
-
         g = copy.deepcopy(list_graphs[i])
-        #g=p.load(open("../data/OASIS_full_batch/modified_graphs/graph_"+str(i)+".gpickle","rb"))
+        # g=p.load(open("../data/OASIS_full_batch/modified_graphs/graph_"+str(i)+".gpickle","rb"))
         col_scope = range(i * nb_nodes, (i + 1) * nb_nodes)
 
-        perm_X = np.array(matching_matrix[np.ix_(row_scope, col_scope)], dtype=int) #Iterate through each Perm Matrix X fixing the largest graph
-        transfered_labels = np.ones(101)*default_value
+        perm_X = np.array(
+            matching_matrix[np.ix_(row_scope, col_scope)], dtype=int
+        )  # Iterate through each Perm Matrix X fixing the largest graph
+        transfered_labels = np.ones(101) * default_value
 
-        #nb_nodes = len(g.nodes)
-        #col_scope = range(i * nb_nodes, (i + 1) * nb_nodes)
+        # nb_nodes = len(g.nodes)
+        # col_scope = range(i * nb_nodes, (i + 1) * nb_nodes)
 
-        for node_indx,ind in enumerate(row_scope):
-            match_index = np.where(perm_X[node_indx,:]==1)[0]
+        for node_indx, ind in enumerate(row_scope):
+            match_index = np.where(perm_X[node_indx, :] == 1)[0]
 
-            if len(match_index)>0:
+            if len(match_index) > 0:
                 transfered_labels[match_index[0]] = color_label[node_indx]
-        nb_unmatched += np.sum(transfered_labels==default_value)
+        nb_unmatched += np.sum(transfered_labels == default_value)
         data_mask = gp.remove_dummy_nodes(g)
-        nodes_coords = gp.graph_nodes_to_coords(g, 'ico100_7_vertex_index', reg_mesh)
-        s_obj, nodes_cb_obj = gv.graph_nodes_to_sources(g, nodes_coords, node_data=transfered_labels[data_mask], nodes_mask=None, c_map='nipy_spectral')
+        nodes_coords = gp.graph_nodes_to_coords(g, "ico100_7_vertex_index", reg_mesh)
+        s_obj, nodes_cb_obj = gv.graph_nodes_to_sources(
+            g,
+            nodes_coords,
+            node_data=transfered_labels[data_mask],
+            nodes_mask=None,
+            c_map="nipy_spectral",
+        )
         vb_sc.add_to_subplot(s_obj)
-    print('nb_unmatched',nb_unmatched)
+    print("nb_unmatched", nb_unmatched)
     print("Preview")
 
-
-
-    print('get_clusters_from_assignment')
-    gca.get_labelling_from_assignment(list_graphs, matching_matrix, largest_ind, mesh, label_attribute)
-    print('create_clusters_lists')
-    cluster_dict = gca.create_clusters_lists(list_graphs, label_attribute=label_attribute)
+    print("get_clusters_from_assignment")
+    gca.get_labelling_from_assignment(
+        list_graphs, matching_matrix, largest_ind, mesh, label_attribute
+    )
+    print("create_clusters_lists")
+    cluster_dict = gca.create_clusters_lists(
+        list_graphs, label_attribute=label_attribute
+    )
     # Calculate the centroid
-    print('get_centroid_clusters')
+    print("get_centroid_clusters")
     centroid_dict = gca.get_centroid_clusters(list_graphs, cluster_dict)
-    pickle_out = open(os.path.join(path_to_silhouette, label_attribute+'_silhouette.gpickle'), "rb")
+    pickle_out = open(
+        os.path.join(path_to_silhouette, label_attribute + "_silhouette.gpickle"), "rb"
+    )
     silhouette_dict = p.load(pickle_out)
     pickle_out.close()
     clust_silhouette = gca.get_silhouette_per_cluster(silhouette_dict)
     centroids_3Dpos = gca.get_centroids_coords(centroid_dict, list_graphs, mesh)
-    s_obj, nodes_cb_obj = gv.graph_nodes_to_sources(centroids_3Dpos, node_data=clust_silhouette,
-                                                        nodes_size=60, nodes_mask=None, c_map='jet', symbol='disc',
-                                                        vmin=-1, vmax=1)
-
+    s_obj, nodes_cb_obj = gv.graph_nodes_to_sources(
+        centroids_3Dpos,
+        node_data=clust_silhouette,
+        nodes_size=60,
+        nodes_mask=None,
+        c_map="jet",
+        symbol="disc",
+        vmin=-1,
+        vmax=1,
+    )
 
     vb_sc.add_to_subplot(s_obj)
     vb_sc.preview()
 
-
-
-        # for l in range(len(g_l)):
-        #     index = np.where()
-        #     transfered_labels[index]=color_label[l]
-
-
-
+    # for l in range(len(g_l)):
+    #     index = np.where()
+    #     transfered_labels[index]=color_label[l]
 
     # is_dummy = []
     # for i in range(nb_graphs):
@@ -144,7 +169,6 @@ if __name__ == "__main__":
     #
     # vb_sc.preview()
     #
-
 
     # list_graphs = gp.load_graphs_in_list(path_to_graphs)
     # for g in list_graphs:

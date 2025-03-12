@@ -2,28 +2,26 @@
 ..moduleauthor:: Marius Thorre
 """
 
-import sys
-
 import numpy as np
 import OT_method_comparaison as OTmc
 import graph_matching.algorithms.pairwise.kergm as kergm
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report, accuracy_score
-from sklearn.datasets import load_digits, fetch_olivetti_faces
+from sklearn.datasets import load_digits
 from sklearn.model_selection import cross_val_score
 
 
 class OTBenchmark:
     def __init__(
-            self,
-            class_one: int,
-            class_two: int,
-            OT_algo: str,
-            dataset,
-            add_dimension: bool,
-            alpha: float,
-            display_perf: bool = False
+        self,
+        class_one: int,
+        class_two: int,
+        OT_algo: str,
+        dataset,
+        add_dimension: bool,
+        alpha: float,
+        display_perf: bool = False,
     ):
         """Benchmark between optimal transport algorithm on dataset using KNN
         :param class_one: first target class
@@ -42,11 +40,7 @@ class OTBenchmark:
         self.alpha = alpha
         self.sinkhorn_iterations = []
 
-    def wassernstein_distance(
-            self,
-            source: np.ndarray,
-            destination: np.ndarray
-    ):
+    def wassernstein_distance(self, source: np.ndarray, destination: np.ndarray):
         """
         Compute Wassernstein distance:
         https://en.wikipedia.org/wiki/Wasserstein_metric
@@ -71,17 +65,14 @@ class OTBenchmark:
 
             cost = np.array(cost).reshape((source.shape[0], destination.shape[0]))
         else:
-            source = source.reshape((-1, 1))/255
-            destination = destination.reshape((1, -1))/255
+            source = source.reshape((-1, 1)) / 255
+            destination = destination.reshape((1, -1)) / 255
 
-            cost = np.abs((source - destination)/source.shape[0])
+            cost = np.abs((source - destination) / source.shape[0])
         return self.run_ot_method(cost, mu_s, mu_t)
 
     def run_ot_method(
-            self,
-            cost: np.ndarray,
-            mu_s: np.ndarray,
-            mu_t: np.ndarray
+        self, cost: np.ndarray, mu_s: np.ndarray, mu_t: np.ndarray
     ) -> float:
         """Compute distance between two matrix using optimal transport
         :param cost: matrix which contains source and destination matrix features
@@ -100,7 +91,7 @@ class OTBenchmark:
                 eta=self.alpha,
                 N1=20,
                 N2=20,
-                tolerance=0.01
+                tolerance=0.01,
             )
         elif self.algo == "sinkhorn":
             transport, iteration = kergm.sinkhorn_method(
@@ -108,7 +99,8 @@ class OTBenchmark:
                 mu_s=np.squeeze(mu_s),
                 mu_t=np.squeeze(mu_t),
                 gamma=1 / self.alpha,
-                tolerance=0.01)
+                tolerance=0.01,
+            )
         else:
             print("Method not recognized")
 
@@ -116,10 +108,7 @@ class OTBenchmark:
 
         return (transport * cost).sum()
 
-    def add_position_feature(
-            self,
-            X: np.ndarray
-    ) -> np.ndarray:
+    def add_position_feature(self, X: np.ndarray) -> np.ndarray:
         """
         :param X: initial matrix to add positional dimension
         :return: initial matrix but after added positional dimension
@@ -133,11 +122,7 @@ class OTBenchmark:
                 c += 1
         return np.array(result)
 
-    def best_parameter(
-            self,
-            X_train: np.ndarray,
-            y_train: np.ndarray
-    ) -> float:
+    def best_parameter(self, X_train: np.ndarray, y_train: np.ndarray) -> float:
         """
         Compute best K-Nearest-Neighbors parameter using cross validation
         :param X_train:
@@ -154,15 +139,15 @@ class OTBenchmark:
 
     def get_perf(self, k=None):
         X_data, y_data = self.dataset
-        X_data = X_data[np.logical_or(y_data == self.class_one, y_data == self.class_two)]
-        y_data = y_data[np.logical_or(y_data == self.class_one, y_data == self.class_two)]
+        X_data = X_data[
+            np.logical_or(y_data == self.class_one, y_data == self.class_two)
+        ]
+        y_data = y_data[
+            np.logical_or(y_data == self.class_one, y_data == self.class_two)
+        ]
 
         X_train, X_test, y_train, y_test = train_test_split(
-            X_data,
-            y_data,
-            test_size=0.3,
-            random_state=42,
-            stratify=y_data
+            X_data, y_data, test_size=0.3, random_state=42, stratify=y_data
         )
         if k is None:
             k = self.best_parameter(X_train, y_train)
@@ -170,10 +155,16 @@ class OTBenchmark:
         knn = KNeighborsClassifier(n_neighbors=k, metric=self.wassernstein_distance)
         knn.fit(X_train, y_train)
         y_pred = knn.predict(X_test)
-        
+
         if self.display_perf:
             print(f"best_k: {k}")
-            print(classification_report(y_test, y_pred, target_names=[str(self.class_one), str(self.class_two)]))
+            print(
+                classification_report(
+                    y_test,
+                    y_pred,
+                    target_names=[str(self.class_one), str(self.class_two)],
+                )
+            )
             print(f"Meaning iteration: {np.mean(self.sinkhorn_iterations)}")
 
         return accuracy_score(y_test, y_pred)
@@ -226,9 +217,5 @@ if __name__ == "__main__":
         class_one=0,
         class_two=1,
         add_dimension=True,
-        k_parameter=2
+        k_parameter=2,
     )
-
-
-
-

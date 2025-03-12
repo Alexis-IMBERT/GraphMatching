@@ -1,14 +1,14 @@
 import sys
 import os
 import numpy as np
+import graph_matching.utils.graph_processing as gp
+import graph_matching.utils.clusters_analysis as gca
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
-project_path = os.path.abspath(os.path.join(current_dir, '../../..'))
+project_path = os.path.abspath(os.path.join(current_dir, "../../.."))
 if project_path not in sys.path:
     sys.path.append(project_path)
 
-import graph_matching.utils.graph_processing as gp
-import graph_matching.utils.clusters_analysis as gca
 
 def create_perm_from_labels(labels):
     U = np.zeros((len(labels), len(set(labels))))
@@ -18,10 +18,15 @@ def create_perm_from_labels(labels):
 
     return U @ U.T
 
+
 if __name__ == "__main__":
-    path_to_graphs = os.path.join(project_path, 'data/Oasis_original_new_with_dummy/modified_graphs')
-    path_to_match_mat = os.path.join(project_path, 'data/Oasis_original_new_with_dummy/')
-    path_to_X = os.path.join(project_path, 'data/Oasis_original_new_with_dummy')
+    path_to_graphs = os.path.join(
+        project_path, "data/Oasis_original_new_with_dummy/modified_graphs"
+    )
+    path_to_match_mat = os.path.join(
+        project_path, "data/Oasis_original_new_with_dummy/"
+    )
+    path_to_X = os.path.join(project_path, "data/Oasis_original_new_with_dummy")
 
     if not os.path.exists(path_to_graphs):
         print(f"Le répertoire {path_to_graphs} n'existe pas.")
@@ -35,22 +40,21 @@ if __name__ == "__main__":
 
     # Charger les graphes
     list_graphs = gp.load_graphs_in_list(path_to_graphs)
-    method = 'media'  # 'neuroimage', 'CAO', 'kerGM', 'mSync', 'mALS'
+    method = "media"  # 'neuroimage', 'CAO', 'kerGM', 'mSync', 'mALS'
     excluded_labels = None  # [-2]
 
     # Obtenir les assignations des étiquettes
-    X_met, X_met_w_dummy, labels_met = gca.get_assignment_from_labelling(list_graphs, labelling_attribute_name='label_'+method, excluded_labels=excluded_labels)
+    X_met, X_met_w_dummy, labels_met = gca.get_assignment_from_labelling(
+        list_graphs,
+        labelling_attribute_name="label_" + method,
+        excluded_labels=excluded_labels,
+    )
     print(X_met.shape)
     print(X_met_w_dummy.shape)
 
-    X_dict = {
-        'full_assignment_mat': X_met,
-        'corresp_labels_rows': labels_met
-    }
+    X_dict = {"full_assignment_mat": X_met, "corresp_labels_rows": labels_met}
 
-    X_w_dummy_dict = {
-        'full_assignment_mat': X_met_w_dummy
-    }
+    X_w_dummy_dict = {"full_assignment_mat": X_met_w_dummy}
 
     # Sauvegarder les matrices d'assignation (décommenter si nécessaire)
     # import scipy.io as sco

@@ -2,20 +2,22 @@
 ..moduleauthor:: Marius Thorre
 """
 
-import os, sys
+from pathlib import Path
 import networkx as nx
 from unittest import TestCase
 
 from graph_matching.utils.graph_processing import get_graph_from_pickle
-current_dir = os.path.dirname(os.path.abspath(__file__))
-project_path = os.path.abspath(os.path.join(current_dir, '../../'))
-if project_path not in sys.path:
-    sys.path.append(project_path)
+
+project_path = Path(__file__).resolve().parents[2]
+
 
 class Test(TestCase):
     def test_get_graph_from_picle(self):
-        g0_path = "resources/graph_for_test/generation/without_outliers/noise_01/graph_00000.gpickle"
-        g0 = get_graph_from_pickle(os.path.join(project_path, g0_path))
+        g0_path = (
+            project_path
+            / "resources/graph_for_test/generation/without_outliers/noise_01/graph_00000.gpickle"
+        )
+        g0 = get_graph_from_pickle(g0_path)
 
         self.assertTrue(len(g0.nodes) == 30)
-        self.assertTrue(type(g0) == nx.Graph)
+        self.assertTrue(type(g0) is nx.Graph)

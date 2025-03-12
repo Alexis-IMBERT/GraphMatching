@@ -2,7 +2,8 @@
 .. moduleauthor:: Marius Thorre, Rohit Yadav
 """
 
-import os, sys
+import os
+import sys
 import shutil
 import numpy as np
 import networkx as nx
@@ -10,29 +11,28 @@ from tqdm.auto import tqdm
 from graph_matching.utils.display_graph_tools import Visualisation
 import graph_matching.algorithms.graph_generation.generate_reference_graph as generate_reference_graph
 import graph_matching.algorithms.graph_generation.generate_graph_family as generate_graph_family
-from graph_matching.utils.graph_tools import edge_len
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
-project_path = os.path.abspath(os.path.join(current_dir, '../../..'))
+project_path = os.path.abspath(os.path.join(current_dir, "../../.."))
 if project_path not in sys.path:
     sys.path.append(project_path)
 
 
 class Graph_generation:
     def __init__(
-            self,
-            pickle_folder_title: str,
-            nb_sample_graphs: int,
-            nb_vertices: int,
-            noise: list,
-            max_outliers: int,
-            step_outliers: int,
-            save_reference: int,
-            nb_ref_graph: int,
-            radius: float,
-            nb_neighbors_to_consider_outliers: int,
-            generation_folder_path: str,
-            html_folder_title: str = None
+        self,
+        pickle_folder_title: str,
+        nb_sample_graphs: int,
+        nb_vertices: int,
+        noise: list,
+        max_outliers: int,
+        step_outliers: int,
+        save_reference: int,
+        nb_ref_graph: int,
+        radius: float,
+        nb_neighbors_to_consider_outliers: int,
+        generation_folder_path: str,
+        html_folder_title: str = None,
     ):
         """
         Compute edge permutation graphs
@@ -85,7 +85,9 @@ class Graph_generation:
 
         print("Generating reference_graph..")
         for _ in tqdm(range(self.nb_ref_graph)):
-            reference_graph = generate_reference_graph.run(self.nb_vertices, self.radius)
+            reference_graph = generate_reference_graph.run(
+                self.nb_vertices, self.radius
+            )
             reference_graph_max = reference_graph
         if self.save_reference:
             trial_path = os.path.join(self.path_to_write, self.pickle_folder_title)
@@ -96,25 +98,26 @@ class Graph_generation:
                 os.mkdir(html_path)
 
         v = Visualisation(
-            graph=reference_graph,
-            title="reference",
-            sphere_radius=self.radius
+            graph=reference_graph, title="reference", sphere_radius=self.radius
         )
 
         v.construct_sphere()
         v.save_as_pickle(path_to_save=trial_path)
-        v.save_as_html(path_to_save=os.path.join(os.path.join(project_path, self.path_to_write, self.html_folder_title)))
+        v.save_as_html(
+            path_to_save=os.path.join(
+                os.path.join(project_path, self.path_to_write, self.html_folder_title)
+            )
+        )
         return trial_path, reference_graph_max
 
     def _generate_noise_graph(
-            self,
-            trial_path: str,
-            reference_graph_max: nx.Graph,
+        self,
+        trial_path: str,
+        reference_graph_max: nx.Graph,
     ):
         list_noise = np.arange(self.min_noise, self.max_noise, self.step_noise)
 
         for noise in list_noise:
-
             folder_name = f"noise_0{noise}" if noise < 10 else f"noise_{noise}"
             path_parameters_folder = os.path.join(trial_path, folder_name)
 
@@ -134,17 +137,33 @@ class Graph_generation:
 
                 sorted_graph.add_nodes_from(sorted(graph_family.nodes(data=True)))
                 sorted_graph.add_edges_from(graph_family.edges(data=True))
-                if not os.path.exists(os.path.join(
-                        project_path + self.html_folder_title,
-                        folder_name)):
-                    os.makedirs(os.path.join(
-                        project_path + self.html_folder_title,
-                        folder_name))
+                if not os.path.exists(
+                    os.path.join(project_path + self.html_folder_title, folder_name)
+                ):
+                    os.makedirs(
+                        os.path.join(project_path + self.html_folder_title, folder_name)
+                    )
 
-                v = Visualisation(graph=sorted_graph, sphere_radius=self.radius, title=f"graph_{i_family:05d}")
+                v = Visualisation(
+                    graph=sorted_graph,
+                    sphere_radius=self.radius,
+                    title=f"graph_{i_family:05d}",
+                )
                 v.construct_sphere()
 
-                v.save_as_html(os.path.join(project_path, self.path_to_write,self.html_folder_title, folder_name))
-                v.save_as_pickle(os.path.join(project_path, self.path_to_write,self.pickle_folder_title, folder_name))
-
-
+                v.save_as_html(
+                    os.path.join(
+                        project_path,
+                        self.path_to_write,
+                        self.html_folder_title,
+                        folder_name,
+                    )
+                )
+                v.save_as_pickle(
+                    os.path.join(
+                        project_path,
+                        self.path_to_write,
+                        self.pickle_folder_title,
+                        folder_name,
+                    )
+                )

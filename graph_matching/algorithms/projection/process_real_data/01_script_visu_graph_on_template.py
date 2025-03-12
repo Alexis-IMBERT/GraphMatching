@@ -5,16 +5,19 @@ import graph_matching.utils.graph_visu as gv
 import graph_matching.utils.graph_processing as gp
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
-project_path = os.path.abspath(os.path.join(current_dir, '../../..'))
+project_path = os.path.abspath(os.path.join(current_dir, "../../.."))
 if project_path not in sys.path:
     sys.path.append(project_path)
 
 if __name__ == "__main__":
-    template_mesh = os.path.join(project_path, 'data/template_mesh/OASIS_avg.lh.white.talairach.reg.ico7.inflated.gii')
+    template_mesh = os.path.join(
+        project_path,
+        "data/template_mesh/OASIS_avg.lh.white.talairach.reg.ico7.inflated.gii",
+    )
     mesh = gv.reg_mesh(sio.load_mesh(template_mesh))
 
-    path_to_graphs = os.path.join(project_path, 'data/Oasis_original_new/')
-    file_sphere_mesh = os.path.join(project_path, 'data/template_mesh/ico100_7.gii')
+    path_to_graphs = os.path.join(project_path, "data/Oasis_original_new/")
+    file_sphere_mesh = os.path.join(project_path, "data/template_mesh/ico100_7.gii")
     list_graphs = gp.load_graphs_in_list(path_to_graphs)
 
     sphere_mesh = sio.load_mesh(file_sphere_mesh)
@@ -24,14 +27,19 @@ if __name__ == "__main__":
     graphs_to_show = [list_graphs[i] for i in inds_to_show]
 
     for g in graphs_to_show:
-        nodes_coords = gp.graph_nodes_to_coords(g, 'ico100_7_vertex_index', mesh)
+        nodes_coords = gp.graph_nodes_to_coords(g, "ico100_7_vertex_index", mesh)
 
         if nodes_coords is None or len(nodes_coords) == 0:
             print(f"Erreur: Coordonnées des nœuds non valides pour le graphe {g}")
             continue
 
-        s_obj, c_obj, node_cb_obj = gv.show_graph(g, nodes_coords, node_color_attribute=None, nodes_size=30,
-                                                  c_map='nipy_spectral')
+        s_obj, c_obj, node_cb_obj = gv.show_graph(
+            g,
+            nodes_coords,
+            node_color_attribute=None,
+            nodes_size=30,
+            c_map="nipy_spectral",
+        )
 
         if s_obj is None or c_obj is None:
             print(f"Erreur: Objet(s) Visbrain non valide(s) pour le graphe {g}")
@@ -49,7 +57,7 @@ if __name__ == "__main__":
     vb_sc2 = gv.visbrain_plot(sphere_mesh)
 
     for g in list_graphs:
-        nodes_coords = gp.graph_nodes_to_coords(g, 'ico100_7_vertex_index', sphere_mesh)
+        nodes_coords = gp.graph_nodes_to_coords(g, "ico100_7_vertex_index", sphere_mesh)
 
         if nodes_coords is None or len(nodes_coords) == 0:
             print(f"Erreur: Coordonnées des nœuds non valides pour le graphe {g}")

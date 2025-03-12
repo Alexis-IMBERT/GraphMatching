@@ -518,7 +518,7 @@ def compute_profile_barycentric_para(profile_sample_points, mesh, triangle_id):
 
     if len(profile_sample_points.shape) != 5:
         raise Exception(
-            "Wrong type of profile_sample_points, " "it must be (N, N_p, N_s, 3, 3)."
+            "Wrong type of profile_sample_points, it must be (N, N_p, N_s, 3, 3)."
         )
 
     vert = mesh.vertices

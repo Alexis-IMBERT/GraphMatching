@@ -6,8 +6,6 @@ Zhang, Z., Xiang, Y., Wu, L., Xue, B., & Nehorai, A. (2019). KerGM: Kernelized g
 .. moduleauthor:: François-Xavier Dupé, Marius THORRE
 """
 
-import sys
-
 from typing import Callable, Optional
 import numpy as np
 import scipy.optimize as sco
@@ -15,7 +13,7 @@ import networkx as nx
 
 
 def _compute_axb(
-        g1: np.ndarray, h1: np.ndarray, g2: np.ndarray, h2: np.ndarray, k: np.ndarray
+    g1: np.ndarray, h1: np.ndarray, g2: np.ndarray, h2: np.ndarray, k: np.ndarray
 ) -> np.ndarray:
     """Compute the AXB (see paper) formula.
 
@@ -28,17 +26,17 @@ def _compute_axb(
     :rtype: np.ndarray
     """
     return (
-            h1 @ (g1.T @ g2 * k) @ h2.T
-            + h1 @ (g1.T @ h2 * k) @ g2.T
-            + g1 @ (h1.T @ g2 * k) @ h2.T
-            + g1 @ (h1.T @ h1 * k) @ g2.T
+        h1 @ (g1.T @ g2 * k) @ h2.T
+        + h1 @ (g1.T @ h2 * k) @ g2.T
+        + g1 @ (h1.T @ g2 * k) @ h2.T
+        + g1 @ (h1.T @ h1 * k) @ g2.T
     )
 
 
 def _compute_edge_kernel(
-        graph1: nx.Graph,
-        graph2: nx.Graph,
-        kernel: Callable[[nx.Graph, nx.Graph, int, int], float],
+    graph1: nx.Graph,
+    graph2: nx.Graph,
+    kernel: Callable[[nx.Graph, nx.Graph, int, int], float],
 ) -> np.ndarray:
     """Inner function for computing part of the Gram matrix between edges.
 
@@ -60,10 +58,10 @@ def _compute_edge_kernel(
 
 
 def create_gradient(
-        graph1: nx.Graph,
-        graph2: nx.Graph,
-        kernel: Callable[[nx.Graph, nx.Graph, int, int], float],
-        knode: np.ndarray,
+    graph1: nx.Graph,
+    graph2: nx.Graph,
+    kernel: Callable[[nx.Graph, nx.Graph, int, int], float],
+    knode: np.ndarray,
 ) -> Callable[[np.ndarray, float], np.ndarray]:
     """Compute the gradient for the Frank-Wolfe minimization (exact version).
     The *kernel* function must take four arguments: the two graphs followed by the index of their respective edges.
@@ -112,10 +110,10 @@ def create_gradient(
         :rtype: np.ndarray
         """
         temp = (
-                h1 @ (g1.T @ x @ g2 * k12) @ h2.T
-                + h1 @ (g1.T @ x @ h2 * k12) @ g2.T
-                + g1 @ (h1.T @ x @ g2 * k12) @ h2.T
-                + g1 @ (h1.T @ x @ h1 * k12) @ g2.T
+            h1 @ (g1.T @ x @ g2 * k12) @ h2.T
+            + h1 @ (g1.T @ x @ h2 * k12) @ g2.T
+            + g1 @ (h1.T @ x @ g2 * k12) @ h2.T
+            + g1 @ (h1.T @ x @ h1 * k12) @ g2.T
         )
         grad = (1 - 2 * alpha) * (sphi1 @ x + x @ sphi2) - 2 * temp - knode
         return grad
@@ -124,7 +122,7 @@ def create_gradient(
 
 
 def create_fast_gradient(
-        phi1: np.ndarray, phi2: np.ndarray, knode: np.ndarray
+    phi1: np.ndarray, phi2: np.ndarray, knode: np.ndarray
 ) -> Callable[[np.ndarray, float], np.ndarray]:
     """Compute the gradient for the Frank-Wolfe minimization (fast version).
 
@@ -166,11 +164,11 @@ def _q_value(x: np.ndarray, y: np.ndarray, grad: np.ndarray) -> float:
 
 
 def _gap_value(
-        x: np.ndarray,
-        x_grad: np.ndarray,
-        y: np.ndarray,
-        gamma: float,
-        epsilon: float = 3e-16,
+    x: np.ndarray,
+    x_grad: np.ndarray,
+    y: np.ndarray,
+    gamma: float,
+    epsilon: float = 3e-16,
 ) -> np.ndarray:
     """Compute the value of the gap (for convergence testing).
 
@@ -188,12 +186,12 @@ def _gap_value(
 
 
 def sinkhorn_method(
-        x: np.ndarray,
-        mu_s: Optional[np.ndarray] = None,
-        mu_t: Optional[np.ndarray] = None,
-        gamma: float = 1.0,
-        tolerance: float = 0.01,
-        iterations: int = 10000,
+    x: np.ndarray,
+    mu_s: Optional[np.ndarray] = None,
+    mu_t: Optional[np.ndarray] = None,
+    gamma: float = 1.0,
+    tolerance: float = 0.01,
+    iterations: int = 10000,
 ) -> (np.ndarray, int):
     """Sinkhorn-Knopp algorithm as proposed by M. Cuturi.
 
@@ -231,15 +229,15 @@ def sinkhorn_method(
 
 
 def _kergm_fw_method(
-        gradient: Callable[[np.ndarray, float], np.ndarray],
-        init: np.ndarray,
-        alpha: float,
-        entropy_gamma: float = 0.005,
-        iterations: int = 1000,
-        tolerance: float = 1e-8,
-        inner_iterations: int = 10000,
-        inner_tolerance: float = 1e-6,
-        epsilon: float = 3e-6,
+    gradient: Callable[[np.ndarray, float], np.ndarray],
+    init: np.ndarray,
+    alpha: float,
+    entropy_gamma: float = 0.005,
+    iterations: int = 1000,
+    tolerance: float = 1e-8,
+    inner_iterations: int = 10000,
+    inner_tolerance: float = 1e-6,
+    epsilon: float = 3e-6,
 ) -> np.ndarray:
     """The Frank-Wolfe method to solve the assignment problem.
 
@@ -283,15 +281,15 @@ def _kergm_fw_method(
 
 
 def kergm_method(
-        gradient: Callable[[np.ndarray, float], np.ndarray],
-        number_of_nodes: tuple[int, int],
-        num_alpha: int = 10,
-        entropy_gamma: float = 0.005,
-        iterations: int = 100,
-        tolerance: float = 1e-8,
-        inner_iterations: int = 10000,
-        inner_tolerance: float = 1e-6,
-        epsilon: float = 3e-16,
+    gradient: Callable[[np.ndarray, float], np.ndarray],
+    number_of_nodes: tuple[int, int],
+    num_alpha: int = 10,
+    entropy_gamma: float = 0.005,
+    iterations: int = 100,
+    tolerance: float = 1e-8,
+    inner_iterations: int = 10000,
+    inner_tolerance: float = 1e-6,
+    epsilon: float = 3e-16,
 ) -> tuple[np.ndarray, np.ndarray]:
     """
     Graph assignment method KerGM.

@@ -3,16 +3,15 @@
 """
 
 import graph_matching.algorithms.graph_generation.generate_noisy_graph as generate_noisy_graph
-from graph_matching.utils.graph_tools import *
 import networkx as nx
 
 
 def run(
-        nb_sample_graphs: int,
-        nb_vertices: int,
-        ref_graph,
-        noise_node=1,
-        noise_edge=1,
+    nb_sample_graphs: int,
+    nb_vertices: int,
+    ref_graph,
+    noise_node=1,
+    noise_edge=1,
 ):
     """
     Generate n noisy graphs from a reference graph alongside the
@@ -31,17 +30,12 @@ def run(
 
     graph_index = 0
     while graph_index < nb_sample_graphs:
-
         noisy_graph = generate_noisy_graph.run(
-            reference_graph,
-            nb_vertices,
-            noise_node,
-            noise_edge
+            reference_graph, nb_vertices, noise_node, noise_edge
         )
 
         if nx.is_connected(noisy_graph):
             list_noisy_graphs.append(noisy_graph)
             graph_index += 1
-
 
     return list_noisy_graphs

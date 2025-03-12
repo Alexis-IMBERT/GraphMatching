@@ -7,29 +7,30 @@ import random
 import plotly.figure_factory as ff
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
-project_path = os.path.abspath(os.path.join(current_dir, '../../..'))
+project_path = os.path.abspath(os.path.join(current_dir, "../../.."))
 if project_path not in sys.path:
     sys.path.append(project_path)
 
-path_1 = os.path.join(project_path, "graph_matching/data/_obsolete_OASIS_full_batch/modified_graphs/")
+path_1 = os.path.join(
+    project_path, "graph_matching/data/_obsolete_OASIS_full_batch/modified_graphs/"
+)
 
 
 # generate random color codes for plotting
 def generate_random_color_codes(num_colors):
     number_of_colors = num_colors
 
-    color = ["#" + ''.join([random.choice('0123456789ABCDEF') for j in range(6)])
-             for i in range(number_of_colors)]
+    color = [
+        "#" + "".join([random.choice("0123456789ABCDEF") for j in range(6)])
+        for i in range(number_of_colors)
+    ]
 
     return color
 
 
 def remove_dummy_nodes(graph):
     G = graph.copy()
-    to_remove = []
-    for (p, d) in G.nodes(data=True):
-        if d['is_dummy'] == True:
-            to_remove.append(p)
+    to_remove = [node for node, d in G.nodes(data=True) if d.get("is_dummy", False)]
     G.remove_nodes_from(to_remove)
     return G
 
@@ -45,7 +46,7 @@ color = generate_random_color_codes(len(degree_list))
 fig = ff.create_distplot(degree_list, os.listdir(path_1), show_hist=False, colors=color)
 
 # Add title
-fig.update_layout(title_text='Degree density real graph')
+fig.update_layout(title_text="Degree density real graph")
 fig.show()
 
 
@@ -72,21 +73,28 @@ for degree_dict in all_graph_nb_degree:
     avg_nb_degree_all_graph.append(avg_degree)
 
 color = generate_random_color_codes(len(avg_nb_degree_all_graph))
-fig = ff.create_distplot(avg_nb_degree_all_graph, os.listdir(path_1), show_hist=False, bin_size=.2, colors=color)
+fig = ff.create_distplot(
+    avg_nb_degree_all_graph,
+    os.listdir(path_1),
+    show_hist=False,
+    bin_size=0.2,
+    colors=color,
+)
 
 # Add title
-fig.update_layout(title_text='Average neigbour degree for real graphs')
+fig.update_layout(title_text="Average neigbour degree for real graphs")
 fig.show()
 
 
 # neighbours geo distance
+
 
 def geo_dist_of_neighb(G):
     nb_dist_dict = {}
     for node in G:
         nb_geo_dist = []
         for nb in G.neighbors(node):
-            nb_geo_dist.append(G.get_edge_data(node, nb)['geodesic_distance'])
+            nb_geo_dist.append(G.get_edge_data(node, nb)["geodesic_distance"])
         nb_dist_dict[node] = nb_geo_dist
     return nb_dist_dict
 
@@ -104,8 +112,14 @@ for dist_dict in all_graph_nb_distance:
     avg_nb_dist_all_graph.append(avg_dist)
 
 color = generate_random_color_codes(len(avg_nb_dist_all_graph))
-fig = ff.create_distplot(avg_nb_dist_all_graph, os.listdir(path_1), show_hist=False, bin_size=.2, colors=color)
+fig = ff.create_distplot(
+    avg_nb_dist_all_graph,
+    os.listdir(path_1),
+    show_hist=False,
+    bin_size=0.2,
+    colors=color,
+)
 
 # Add title
-fig.update_layout(title_text='Average neigbour geo distance for real graphs')
+fig.update_layout(title_text="Average neigbour geo distance for real graphs")
 fig.show()

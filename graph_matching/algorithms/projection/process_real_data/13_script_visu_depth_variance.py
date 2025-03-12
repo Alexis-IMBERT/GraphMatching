@@ -1,4 +1,5 @@
-import sys, os
+import sys
+import os
 import resources.slam.io as sio
 import graph_matching.utils.graph_visu as gv
 import graph_matching.utils.graph_processing as gp
@@ -6,7 +7,7 @@ import graph_matching.utils.clusters_analysis as gca
 import numpy as np
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
-project_path = os.path.abspath(os.path.join(current_dir, '../../..'))
+project_path = os.path.abspath(os.path.join(current_dir, "../../.."))
 if project_path not in sys.path:
     sys.path.append(project_path)
 
@@ -27,16 +28,15 @@ def create_clusters_lists(list_graphs, label_attribute="label_dbscan"):
                 label_cluster = graph.nodes[node][label_attribute]
 
                 if label_cluster in result_dict:
-
                     # retrieve depth of the corresponding label in that graph
-                    depth_value = graph.nodes[node]['depth']
+                    depth_value = graph.nodes[node]["depth"]
 
                     result_dict[label_cluster].append((i_graph, node))
                     label_depths[label_cluster].append(depth_value)
 
                 else:
                     # retrieve depth of the corresponding label in that graph
-                    depth_value = graph.nodes[node]['depth']
+                    depth_value = graph.nodes[node]["depth"]
 
                     result_dict[label_cluster] = [(i_graph, node)]
                     label_depths[label_cluster] = [depth_value]
@@ -45,18 +45,22 @@ def create_clusters_lists(list_graphs, label_attribute="label_dbscan"):
 
 
 if __name__ == "__main__":
-    template_mesh = os.path.join(project_path,
-                                 'data/template_mesh/OASIS_avg.lh.white.talairach.reg.ico7.inflated.gii')  # lh.OASIS_testGrp_average_inflated.gii
+    template_mesh = os.path.join(
+        project_path,
+        "data/template_mesh/OASIS_avg.lh.white.talairach.reg.ico7.inflated.gii",
+    )  # lh.OASIS_testGrp_average_inflated.gii
     mesh = gv.reg_mesh(sio.load_mesh(template_mesh))
 
-    path_to_labelled_graphs = os.path.join(project_path, 'data/Oasis_original_new_with_dummy/labelled_graphs')
+    path_to_labelled_graphs = os.path.join(
+        project_path, "data/Oasis_original_new_with_dummy/labelled_graphs"
+    )
 
     vmax = 0.7
 
-    methods = ['mALS', 'mSync', 'CAO', 'kerGM', 'MatchEig', 'media', 'neuroimage']
+    methods = ["mALS", "mSync", "CAO", "kerGM", "MatchEig", "media", "neuroimage"]
 
     trash_label = -2  # -0.1#-2
-    reg_or_unreg = ''  # '_unreg'#''
+    reg_or_unreg = ""  # '_unreg'#''
     largest_ind = 22  # 24
     default_label = -0.1
     nb_bins = 20
@@ -64,21 +68,23 @@ if __name__ == "__main__":
 
     list_graphs = gp.load_graphs_in_list(path_to_labelled_graphs)
 
-    simbs = ['cross', 'ring', 'disc', 'square']
+    simbs = ["cross", "ring", "disc", "square"]
 
     for ind, method in enumerate(methods):
-        print('------------' + method + '---------------')
+        print("------------" + method + "---------------")
         vb_sc = gv.visbrain_plot(mesh)
         visb_sc_shape = gv.get_visb_sc_shape(vb_sc)
-        if 'media' in method:
-            label_attribute = 'label_media'
-        elif 'neuroimage' in method:
-            label_attribute = 'label_neuroimage'
+        if "media" in method:
+            label_attribute = "label_media"
+        elif "neuroimage" in method:
+            label_attribute = "label_neuroimage"
         else:
-            label_attribute = 'labelling_' + method + reg_or_unreg
+            label_attribute = "labelling_" + method + reg_or_unreg
 
         print(label_attribute)
-        cluster_dict, depth_dict = create_clusters_lists(list_graphs, label_attribute=label_attribute)
+        cluster_dict, depth_dict = create_clusters_lists(
+            list_graphs, label_attribute=label_attribute
+        )
 
         # Calculate depth variance
         depth_dict_var = {}
@@ -88,17 +94,29 @@ if __name__ == "__main__":
             depth_dict_var[k] = mean_var
 
         # Calculate the centroid
-        centroid_dict = gca.get_centroid_clusters(list_graphs, cluster_dict, coords_attribute="sphere_3dcoords")
-        centroids_3Dpos = gca.get_centroids_coords(centroid_dict, list_graphs, mesh,
-                                                   attribute_vertex_index='ico100_7_vertex_index')
+        centroid_dict = gca.get_centroid_clusters(
+            list_graphs, cluster_dict, coords_attribute="sphere_3dcoords"
+        )
+        centroids_3Dpos = gca.get_centroids_coords(
+            centroid_dict,
+            list_graphs,
+            mesh,
+            attribute_vertex_index="ico100_7_vertex_index",
+        )
 
-        print('Min node data: ', np.min(list(depth_dict_var.values())))
-        print('Max node data: ', np.max(list(depth_dict_var.values())))
+        print("Min node data: ", np.min(list(depth_dict_var.values())))
+        print("Max node data: ", np.max(list(depth_dict_var.values())))
 
         # To plot individual methods
-        s_obj, nodes_cb_obj = gv.graph_nodes_to_sources(centroids_3Dpos,
-                                                        node_data=np.array(list(depth_dict_var.values())),
-                                                        nodes_size=30, nodes_mask=None, c_map='jet', vmin=0, vmax=vmax)
+        s_obj, nodes_cb_obj = gv.graph_nodes_to_sources(
+            centroids_3Dpos,
+            node_data=np.array(list(depth_dict_var.values())),
+            nodes_size=30,
+            nodes_mask=None,
+            c_map="jet",
+            vmin=0,
+            vmax=vmax,
+        )
 
         vb_sc.add_to_subplot(s_obj)
 

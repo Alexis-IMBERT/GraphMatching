@@ -1,4 +1,5 @@
-import sys, os
+import sys
+import os
 from visbrain.objects import SourceObj, ColorbarObj
 import resources.slam.io as sio
 import graph_matching.utils.graph_visu as gv
@@ -10,15 +11,19 @@ import pickle as p
 import matplotlib.pyplot as plt
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
-project_path = os.path.abspath(os.path.join(current_dir, '../../..'))
+project_path = os.path.abspath(os.path.join(current_dir, "../../.."))
 if project_path not in sys.path:
     sys.path.append(project_path)
 
+
 def label_nodes_according_to_coord(graph_no_dummy, template_mesh, coord_dim=1):
-    nodes_coords = gp.graph_nodes_to_coords(graph_no_dummy, 'ico100_7_vertex_index', template_mesh)
+    nodes_coords = gp.graph_nodes_to_coords(
+        graph_no_dummy, "ico100_7_vertex_index", template_mesh
+    )
     one_nodes_coords = nodes_coords[:, coord_dim]
     one_nodes_coords_scaled = (one_nodes_coords - np.min(one_nodes_coords)) / (
-                np.max(one_nodes_coords) - np.min(one_nodes_coords))
+        np.max(one_nodes_coords) - np.min(one_nodes_coords)
+    )
     # initialise the dict for atttributes
     nodes_attributes = {}
     # Fill the dictionnary with the nd_array attribute
@@ -27,10 +32,10 @@ def label_nodes_according_to_coord(graph_no_dummy, template_mesh, coord_dim=1):
 
     nx.set_node_attributes(graph_no_dummy, nodes_attributes)
 
-def show_graph_nodes(graph, mesh, data, clim=(0, 1), transl=None):
 
+def show_graph_nodes(graph, mesh, data, clim=(0, 1), transl=None):
     # manage nodes
-    s_coords = gp.graph_nodes_to_coords(graph, 'ico100_7_vertex_index', mesh)
+    s_coords = gp.graph_nodes_to_coords(graph, "ico100_7_vertex_index", mesh)
     print("s_coords", s_coords.shape)
 
     transl_bary = np.mean(s_coords)
@@ -39,26 +44,45 @@ def show_graph_nodes(graph, mesh, data, clim=(0, 1), transl=None):
     if transl is not None:
         s_coords += transl
 
-    s_obj = SourceObj('nodes', s_coords, color='red',  # data=data[data_mask],
-                      edge_color='black', symbol='disc', edge_width=2.,
-                      radius_min=30., radius_max=30., alpha=.9)
+    s_obj = SourceObj(
+        "nodes",
+        s_coords,
+        color="red",  # data=data[data_mask],
+        edge_color="black",
+        symbol="disc",
+        edge_width=2.0,
+        radius_min=30.0,
+        radius_max=30.0,
+        alpha=0.9,
+    )
     """Color the sources according to data
     """
-    s_obj.color_sources(data=data, cmap='hot', clim=clim)
+    s_obj.color_sources(data=data, cmap="hot", clim=clim)
     # Get the colorbar of the source object
-    CBAR_STATE = dict(cbtxtsz=30, txtsz=30., width=.1, cbtxtsh=3.,
-                      rect=(-.3, -2., 1., 4.), txtcolor='k')
-    cb_obj = ColorbarObj(s_obj, cblabel='node consistency', border=False,
-                         **CBAR_STATE)
+    CBAR_STATE = dict(
+        cbtxtsz=30,
+        txtsz=30.0,
+        width=0.1,
+        cbtxtsh=3.0,
+        rect=(-0.3, -2.0, 1.0, 4.0),
+        txtcolor="k",
+    )
+    cb_obj = ColorbarObj(s_obj, cblabel="node consistency", border=False, **CBAR_STATE)
 
     return s_obj, cb_obj
 
 
 if __name__ == "__main__":
-    template_mesh = os.path.join(project_path, 'data/template_mesh/lh.OASIS_testGrp_average_inflated.gii')
-    path_to_graphs = os.path.join(project_path, 'data/_obsolete_OASIS_full_batch/modified_graphs')
-    Hippi_path = os.path.join(project_path, 'data/RESULT_FRIOUL_HIPPI/Hippi_res_real_mat.npy')
-    path_to_match_mat = os.path.join(project_path, 'data/_obsolete_OASIS_full_batch')
+    template_mesh = os.path.join(
+        project_path, "data/template_mesh/lh.OASIS_testGrp_average_inflated.gii"
+    )
+    path_to_graphs = os.path.join(
+        project_path, "data/_obsolete_OASIS_full_batch/modified_graphs"
+    )
+    Hippi_path = os.path.join(
+        project_path, "data/RESULT_FRIOUL_HIPPI/Hippi_res_real_mat.npy"
+    )
+    path_to_match_mat = os.path.join(project_path, "data/_obsolete_OASIS_full_batch")
 
     list_graphs = gp.load_graphs_in_list(path_to_graphs)
 
@@ -66,7 +90,9 @@ if __name__ == "__main__":
     x_mALS = sco.loadmat(os.path.join(path_to_match_mat, "X_mALS.mat"))["X"]
     x_cao = sco.loadmat(os.path.join(path_to_match_mat, "X_cao_cst_o.mat"))["X"]
     Hippi = np.load(Hippi_path)
-    x_Kergm = sco.loadmat(os.path.join(path_to_match_mat, "X_pairwise_kergm.mat"))["full_assignment_mat"]
+    x_Kergm = sco.loadmat(os.path.join(path_to_match_mat, "X_pairwise_kergm.mat"))[
+        "full_assignment_mat"
+    ]
 
     clim = (0, 1)
     matching_matrix = Hippi
@@ -74,7 +100,9 @@ if __name__ == "__main__":
 
     is_dummy = []
     for i in range(nb_graphs):
-        sing_graph = p.load(open(os.path.join(path_to_graphs, "graph_" + str(i) + ".gpickle"), "rb"))
+        sing_graph = p.load(
+            open(os.path.join(path_to_graphs, "graph_" + str(i) + ".gpickle"), "rb")
+        )
         is_dummy.append(list(nx.get_node_attributes(sing_graph, "is_dummy").values()))
 
     is_dummy_vect = [val for sublist in is_dummy for val in sublist]
@@ -89,25 +117,31 @@ if __name__ == "__main__":
     for i in range(nb_graphs):
         match_label_per_graph = {}
 
-        g = p.load(open(os.path.join(path_to_graphs, "graph_" + str(i) + ".gpickle"), "rb"))
+        g = p.load(
+            open(os.path.join(path_to_graphs, "graph_" + str(i) + ".gpickle"), "rb")
+        )
         nb_nodes = len(g.nodes)
         gp.remove_dummy_nodes(g)
         scope = range(i * nb_nodes, (i + 1) * nb_nodes)
         for node_indx, ind in enumerate(scope):
             match_indexes = np.where(matching_matrix[ind, :] == 1)[0]
-            match_perc = (len(match_indexes) - len(
-                set(match_indexes).intersection(np.where(np.array(is_dummy_vect) == True)[0]))) / nb_graphs
-            match_label_per_graph[node_indx] = {'label_color': match_perc}
+            match_perc = (
+                len(match_indexes)
+                - len(
+                    set(match_indexes).intersection(np.where(np.array(is_dummy_vect)))
+                )
+            ) / nb_graphs
+            match_label_per_graph[node_indx] = {"label_color": match_perc}
 
         nx.set_node_attributes(g, match_label_per_graph)
         data_mask = gp.remove_dummy_nodes(g)
 
-        his_data = list(nx.get_node_attributes(g, 'label_color').values())
+        his_data = list(nx.get_node_attributes(g, "label_color").values())
 
         plt.hist(his_data, density=False, bins=50)  # density=False would make counts
-        plt.ylabel('Frequency')
-        plt.xlabel('Data')
-        plt.title('For 1 graph: number of nodes matched across graphs by Hippi')
+        plt.ylabel("Frequency")
+        plt.xlabel("Data")
+        plt.title("For 1 graph: number of nodes matched across graphs by Hippi")
         plt.show()
 
         # nodes_coords = gp.graph_nodes_to_coords(g, 'ico100_7_vertex_index', mesh)
@@ -115,7 +149,7 @@ if __name__ == "__main__":
         s_obj, cb_obj = show_graph_nodes(g, mesh, data=node_data[data_mask], clim=clim)
         visb_sc_shape = gv.get_visb_sc_shape(vb_sc)
         vb_sc.add_to_subplot(s_obj, row=visb_sc_shape[0] - 1, col=visb_sc_shape[1] - 1)
-    vb_sc.add_to_subplot(cb_obj, row=visb_sc_shape[0] - 1,
-                         col=visb_sc_shape[1] + 1, width_max=200)
+    vb_sc.add_to_subplot(
+        cb_obj, row=visb_sc_shape[0] - 1, col=visb_sc_shape[1] + 1, width_max=200
+    )
     vb_sc.preview()
-

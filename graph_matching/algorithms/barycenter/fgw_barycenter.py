@@ -11,23 +11,11 @@ from ot.utils import list_to_array, unif, check_random_state, UndefinedParameter
 from ot.backend import get_backend
 from ot.gromov._utils import update_feature_matrix, update_square_loss, update_kl_loss
 
-import os
-import sys
-
-current_dir = os.path.dirname(os.path.abspath(__file__))
-project_path = os.path.abspath(os.path.join(current_dir, '../../'))
-if project_path not in sys.path:
-    sys.path.append(project_path)
-
 import graph_matching.algorithms.pairwise.fgw as fgw
 
+
 class Barycenter:
-    def __init__(
-            self,
-            graphs: list,
-            nb_node: int,
-            title: str = "Barycenter"
-    ):
+    def __init__(self, graphs: list, nb_node: int, title: str = "Barycenter"):
         """
         Compute graphs barycenter
         :param graphs: list of graphs
@@ -61,7 +49,7 @@ class Barycenter:
                 Cs=adj_matrices,
                 alpha=0.5,
                 fixed_structure=True,
-                init_C=adj_matrices[0]
+                init_C=adj_matrices[0],
             )
 
         else:
@@ -70,12 +58,11 @@ class Barycenter:
                 Ys=nodes_positions,
                 Cs=adj_matrices,
                 alpha=0.05,
-                log=True
+                log=True,
             )
             self.T = log["T"][-1]
 
     def get_graph(self) -> nx.Graph:
-
         all_node_coord = []
         all_node_label = []
 
@@ -88,15 +75,15 @@ class Barycenter:
         tmp = nx.Graph()
 
         for node, i in enumerate(G.nodes):
-            tmp.add_node(node, coord=self.F[i], label=np.argmax(self.T[i])+1)
+            tmp.add_node(node, coord=self.F[i], label=np.argmax(self.T[i]) + 1)
         return tmp
 
     def _check_node(self):
         max_node = max([len(graph.nodes) for graph in self.graphs])
         for graph in self.graphs:
-           nb_node_to_add = max_node - len(graph.nodes)
-           for i in range(nb_node_to_add):
-                 graph.add_node(len(graph.nodes) + i, coord=np.array([0, 0]), label=-1)
+            nb_node_to_add = max_node - len(graph.nodes)
+            for i in range(nb_node_to_add):
+                graph.add_node(len(graph.nodes) + i, coord=np.array([0, 0]), label=-1)
 
     def get_distance_diff(self):
         dist = {}
@@ -109,25 +96,45 @@ class Barycenter:
                     if bary.nodes[bary_node]["label"] == graph.nodes[g_node]["label"]:
                         current_dist.append(
                             np.linalg.norm(
-                                bary.nodes[bary_node]["coord"] - graph.nodes[g_node]["coord"]
+                                bary.nodes[bary_node]["coord"]
+                                - graph.nodes[g_node]["coord"]
                             )
                         )
 
             dist[bary.nodes[bary_node]["label"]] = np.mean(current_dist)
         print(dist)
 
-    def fgw_barycenters(self,
-                        N, Ys, Cs, ps=None, lambdas=None, alpha=0.5, fixed_structure=False,
-                        fixed_features=False, p=None, loss_fun='square_loss', armijo=False,
-                        symmetric=True, max_iter=100, tol=1e-9, stop_criterion='barycenter',
-                        warmstartT=False, verbose=False, log=False, init_C=None, init_X=None,
-                        random_state=None, **kwargs):
-
+    def fgw_barycenters(
+        self,
+        N,
+        Ys,
+        Cs,
+        ps=None,
+        lambdas=None,
+        alpha=0.5,
+        fixed_structure=False,
+        fixed_features=False,
+        p=None,
+        loss_fun="square_loss",
+        armijo=False,
+        symmetric=True,
+        max_iter=100,
+        tol=1e-9,
+        stop_criterion="barycenter",
+        warmstartT=False,
+        verbose=False,
+        log=False,
+        init_C=None,
+        init_X=None,
+        random_state=None,
+        **kwargs,
+    ):
         arr = [*Cs, *Ys]
         if ps is not None:
             if isinstance(ps[0], list):
                 raise ValueError(
-                    "Deprecated feature in POT 0.9.4: weights ps[i] are lists and should be arrays from a supported backend (e.g numpy).")
+                    "Deprecated feature in POT 0.9.4: weights ps[i] are lists and should be arrays from a supported backend (e.g numpy)."
+                )
 
             arr += [*ps]
         else:
@@ -141,13 +148,13 @@ class Barycenter:
 
         S = len(Cs)
         if lambdas is None:
-            lambdas = [1. / S] * S
+            lambdas = [1.0 / S] * S
 
         d = Ys[0].shape[1]  # dimension on the node features
 
         if fixed_structure:
             if init_C is None:
-                raise UndefinedParameter('If C is fixed it must be initialized')
+                raise UndefinedParameter("If C is fixed it must be initialized")
             else:
                 C = init_C
         else:
@@ -161,7 +168,7 @@ class Barycenter:
 
         if fixed_features:
             if init_X is None:
-                raise UndefinedParameter('If X is fixed it must be initialized')
+                raise UndefinedParameter("If X is fixed it must be initialized")
             else:
                 X = init_X
         else:
@@ -178,31 +185,30 @@ class Barycenter:
 
         cpt = 0
 
-        if stop_criterion == 'barycenter':
-            inner_log = False
+        if stop_criterion == "barycenter":
             err_feature = 1e15
             err_structure = 1e15
-            err_rel_loss = 0.
-
+            err_rel_loss = 0.0
         else:
-            inner_log = True
-            err_feature = 0.
-            err_structure = 0.
+            err_feature = 0.0
+            err_structure = 0.0
             curr_loss = 1e15
             err_rel_loss = 1e15
 
         if log:
             log_ = {}
-            if stop_criterion == 'barycenter':
-                log_['err_feature'] = []
-                log_['err_structure'] = []
-                log_['Ts_iter'] = []
+            if stop_criterion == "barycenter":
+                log_["err_feature"] = []
+                log_["err_structure"] = []
+                log_["Ts_iter"] = []
             else:
-                log_['loss'] = []
-                log_['err_rel_loss'] = []
+                log_["loss"] = []
+                log_["err_rel_loss"] = []
 
-        while ((err_feature > tol or err_structure > tol or err_rel_loss > tol) and cpt < max_iter):
-            if stop_criterion == 'barycenter':
+        while (
+            err_feature > tol or err_structure > tol or err_rel_loss > tol
+        ) and cpt < max_iter:
+            if stop_criterion == "barycenter":
                 Cprev = C
                 Xprev = X
             else:
@@ -210,29 +216,31 @@ class Barycenter:
 
             # get transport plans
 
-            res = [fgw.conditional_gradient(
-                distance=Ms[s],
-                C1=C,
-                C2=Cs[s],
-                mu_s=p,
-                mu_t=ps[s],
-                ot_method="sns",
-                eta=20,
-                rho=70,
-                N1=50,
-                N2=50
-            )
-                for s in range(S)]
+            res = [
+                fgw.conditional_gradient(
+                    distance=Ms[s],
+                    C1=C,
+                    C2=Cs[s],
+                    mu_s=p,
+                    mu_t=ps[s],
+                    ot_method="sns",
+                    eta=20,
+                    rho=70,
+                    N1=50,
+                    N2=50,
+                )
+                for s in range(S)
+            ]
             # else:
             #     res = [fused_gromov_wasserstein(
             #         Ms[s], C, Cs[s], p, ps[s], loss_fun=loss_fun, alpha=alpha, armijo=armijo, symmetric=symmetric,
             #         G0=None, max_iter=max_iter, tol_rel=1e-5, tol_abs=0., log=inner_log, verbose=verbose, **kwargs)
             #         for s in range(S)]
-            if stop_criterion == 'barycenter':
+            if stop_criterion == "barycenter":
                 T = res
             else:
                 T = [output[0] for output in res]
-                curr_loss = np.sum([output[1]['fgw_dist'] for output in res])
+                curr_loss = np.sum([output[1]["fgw_dist"] for output in res])
 
             # update barycenters
             if not fixed_features:
@@ -241,48 +249,50 @@ class Barycenter:
                 Ms = [dist(X, Ys[s]) for s in range(len(Ys))]
 
             if not fixed_structure:
-                if loss_fun == 'square_loss':
+                if loss_fun == "square_loss":
                     C = update_square_loss(p, lambdas, T, Cs, nx)
 
-                elif loss_fun == 'kl_loss':
+                elif loss_fun == "kl_loss":
                     C = update_kl_loss(p, lambdas, T, Cs, nx)
 
             # update convergence criterion
-            if stop_criterion == 'barycenter':
-                err_feature, err_structure = 0., 0.
+            if stop_criterion == "barycenter":
+                err_feature, err_structure = 0.0, 0.0
                 if not fixed_features:
                     err_feature = nx.norm(X - Xprev)
                 if not fixed_structure:
                     err_structure = nx.norm(C - Cprev)
                 if log:
-                    log_['err_feature'].append(err_feature)
-                    log_['err_structure'].append(err_structure)
-                    log_['Ts_iter'].append(T)
+                    log_["err_feature"].append(err_feature)
+                    log_["err_structure"].append(err_structure)
+                    log_["Ts_iter"].append(T)
 
                 if verbose:
                     if cpt % 200 == 0:
-                        print('{:5s}|{:12s}'.format(
-                            'It.', 'Err') + '\n' + '-' * 19)
-                    print('{:5d}|{:8e}|'.format(cpt, err_structure))
-                    print('{:5d}|{:8e}|'.format(cpt, err_feature))
+                        print("{:5s}|{:12s}".format("It.", "Err") + "\n" + "-" * 19)
+                    print("{:5d}|{:8e}|".format(cpt, err_structure))
+                    print("{:5d}|{:8e}|".format(cpt, err_feature))
             else:
-                err_rel_loss = abs(curr_loss - prev_loss) / prev_loss if prev_loss != 0. else np.nan
+                err_rel_loss = (
+                    abs(curr_loss - prev_loss) / prev_loss
+                    if prev_loss != 0.0
+                    else np.nan
+                )
                 if log:
-                    log_['loss'].append(curr_loss)
-                    log_['err_rel_loss'].append(err_rel_loss)
+                    log_["loss"].append(curr_loss)
+                    log_["err_rel_loss"].append(err_rel_loss)
 
                 if verbose:
                     if cpt % 200 == 0:
-                        print('{:5s}|{:12s}'.format(
-                            'It.', 'Err') + '\n' + '-' * 19)
-                    print('{:5d}|{:8e}|'.format(cpt, err_rel_loss))
+                        print("{:5s}|{:12s}".format("It.", "Err") + "\n" + "-" * 19)
+                    print("{:5d}|{:8e}|".format(cpt, err_rel_loss))
 
             cpt += 1
 
         if log:
-            log_['T'] = T
-            log_['p'] = p
-            log_['Ms'] = Ms
+            log_["T"] = T
+            log_["p"] = p
+            log_["Ms"] = Ms
 
             return X, C, log_
         else:

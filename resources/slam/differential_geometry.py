@@ -442,7 +442,6 @@ def triangle_gradient(mesh, texture_array):
 
     # Calculate the Gradient
     for i in range(l_poly):
-
         # Percentage done
         if int(i / float(l_poly) * 100) > n:
             n += 1

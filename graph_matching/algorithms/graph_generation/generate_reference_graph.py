@@ -4,17 +4,14 @@
 
 import numpy as np
 from resources.slam import topology as stop
-from graph_matching.utils.graph_tools import *
+from graph_matching.utils.graph_tools import tri_from_hull
 import graph_matching.algorithms.graph_generation.sphere_sampling as sphere_sampling
-import graph_matching.algorithms.graph_generation.generate_sphere_random_sampling as generate_sphere_random_sampling
 import graph_matching.utils.graph_processing as graph_processing
+import networkx as nx
 
 
-def run(
-        nb_vertices: int,
-        radius: float
-) -> nx.Graph:
-    """ Generate random sampling
+def run(nb_vertices: int, radius: float) -> nx.Graph:
+    """Generate random sampling
     :param int nb_vertices:
     :param float radius:
     :return nx.Graph :
@@ -22,13 +19,13 @@ def run(
     """
     x, y, z = sphere_sampling.fibonacci(nb_point=nb_vertices, radius=radius)
 
-    #sphere_random_sampling = generate_sphere_random_sampling.run(vertex_number=nb_vertices, radius=radius)
+    # sphere_random_sampling = generate_sphere_random_sampling.run(vertex_number=nb_vertices, radius=radius)
 
     sphere_random_sampling = np.vstack((x, y, z)).T
 
-    sphere_random_sampling = tri_from_hull(sphere_random_sampling)  # Computing convex hull (adding edges)
-
-
+    sphere_random_sampling = tri_from_hull(
+        sphere_random_sampling
+    )  # Computing convex hull (adding edges)
 
     adja = stop.adjacency_matrix(sphere_random_sampling)
     graph = nx.from_numpy_array(adja.todense())
@@ -36,7 +33,10 @@ def run(
     node_attribute_dict = {}
     for node, label in enumerate(graph.nodes()):
         # we set the label of nodes in the same order as in graph
-        node_attribute_dict[node] = {"coord": np.array(sphere_random_sampling.vertices[node]), "label": label}
+        node_attribute_dict[node] = {
+            "coord": np.array(sphere_random_sampling.vertices[node]),
+            "label": label,
+        }
     # add the node attributes to the graph
     nx.set_node_attributes(graph, node_attribute_dict)
     #
@@ -50,13 +50,17 @@ def run(
         # We calculate the geodesic distance
         end_a = graph.nodes()[edge[0]]["coord"]
         end_b = graph.nodes()[edge[1]]["coord"]
-        geodesic_dist = graph_processing.get_geodesic_distance_sphere(end_a, end_b, radius)
+        geodesic_dist = graph_processing.get_geodesic_distance_sphere(
+            end_a, end_b, radius
+        )
 
         # add the information in the dictionnary
-        edge_attribute_dict[edge] = {"geodesic_distance": geodesic_dist, "id": id_counter}
+        edge_attribute_dict[edge] = {
+            "geodesic_distance": geodesic_dist,
+            "id": id_counter,
+        }
         id_counter += 1
 
     # add the edge attributes to the graph
     nx.set_edge_attributes(graph, edge_attribute_dict)
     return graph
-
